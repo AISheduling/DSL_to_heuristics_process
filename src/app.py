@@ -1,5 +1,8 @@
+import io
 import json
+import sys
 import tempfile
+import types
 from pathlib import Path
 
 import streamlit as st
@@ -31,6 +34,204 @@ HEURISTICS = {
     "MSLK - Minimum Slack": "mslk",
 }
 
+# Подсказка со структурой объектов показывается рядом с полем вставки кода
+SNAPSHOT_REFERENCE = """\
+# select_job(eligible_ids, jobs, snapshot, meta) -> int
+#   eligible_ids : list[int]            — id работ, готовых к запуску
+#   jobs         : dict[int, Job]       — все работы
+#   snapshot     : dict                 — текущее состояние:
+#       "current_time"      : int
+#       "completed_jobs"    : list[int]
+#       "active_jobs"       : dict[int, int]   # job_id -> finish_time
+#       "eligible_jobs"     : list[int]
+#       "renewable_used"    : dict[int, int]   # resource_id -> used
+#       "non_renewable_stock": dict[int, int]
+#       "skipped_jobs"      : list[int]
+#   meta         : DSLMeta              — метаданные DSL:
+#       .primary_metric, .primary_direction
+#       .is_single_machine, .is_multi_project
+#       .has_non_renewable, .conditional_scheduling
+#
+# Job attributes:
+#   .id, .duration, .predecessors, .successors
+#   .resources_required  : dict[int, int]  # resource_id -> amount
+#   .earliness_penalty, .tardiness_penalty
+#   .non_renewable_consumption : dict[int, int]
+#
+# allocate(job, resources, snapshot, meta) -> dict[int, int]
+#   resources    : dict[int, Resource]
+#       Resource: .id, .name, .capacity, .r_type, .initial_stock
+#   Возвращает {resource_id: amount}
+# ─────────────────────────────────────────────────────────────
+"""
+
+DEFAULT_CODE = """\
+def select_job(eligible_ids, jobs, snapshot, meta):
+    # Пример: выбираем работу с наибольшим числом преемников
+    return max(eligible_ids, key=lambda jid: len(jobs[jid].successors))
+
+
+def allocate(job, resources, snapshot, meta):
+    # Выделяем ровно столько, сколько требует работа
+    return dict(job.resources_required)
+"""
+
+
+# Вспомогательные функции
+def compile_fn(code: str, fn_name: str):
+    """
+    Компилирует код и возвращает (функция, None) или (None, текст_ошибки).
+    """
+    mod = types.ModuleType("llm_heuristic")
+    try:
+        exec(compile(code, "<llm_generated>", "exec"), mod.__dict__)  # noqa: S102
+    except SyntaxError as e:
+        return None, f"SyntaxError в строке {e.lineno}: {e.msg}"
+    except Exception as e:
+        return None, f"Ошибка при компиляции: {e}"
+
+    fn = getattr(mod, fn_name, None)
+    if fn is None:
+        return None, f"Функция `{fn_name}` не найдена в коде."
+    return fn, None
+
+
+def make_builtin_select_fn(key):
+    if key == "spt":
+        def fn(eligible_ids, jobs, snap, meta):
+            return min(eligible_ids, key=lambda jid: jobs[jid].duration)
+    elif key == "lpt":
+        def fn(eligible_ids, jobs, snap, meta):
+            return max(eligible_ids, key=lambda jid: jobs[jid].duration)
+    elif key == "mslk":
+        def fn(eligible_ids, jobs, snap, meta):
+            return min(
+                eligible_ids,
+                key=lambda jid: jobs[jid].duration / (len(jobs[jid].successors) + 1),
+            )
+    else:
+        fn = None
+    return fn
+
+
+def run_solver(dsl_tmp_path, instance_data, select_fn, allocate_fn, verbose):
+    from scheduler_skeleton import solve
+
+    log_buf = io.StringIO()
+    old_stdout = sys.stdout
+    sys.stdout = log_buf
+    try:
+        result = solve(
+            dsl_path=dsl_tmp_path,
+            instance_data=instance_data,
+            select_job_fn=select_fn,
+            allocate_fn=allocate_fn,
+            verbose=verbose,
+        )
+        error = None
+    except Exception as e:
+        result = None
+        error = str(e)
+    finally:
+        sys.stdout = old_stdout
+
+    return result, log_buf.getvalue(), error
+
+
+def render_results(result, instance_data, log_output, verbose):
+    import pandas as pd
+
+    st.success("Планирование завершено!")
+    st.subheader("Результаты")
+
+    obj = result.get("objective", {})
+    sched = result.get("schedule", {})
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Целевая метрика", obj.get("primary", "—"))
+    m2.metric("Работ в расписании", len(sched))
+    m3.metric("Итераций", result.get("iterations", "?"))
+    m4.metric("Финальное время", result.get("final_time", "?"))
+
+    if "budget_feasible" in obj:
+        if obj["budget_feasible"]:
+            st.success("Бюджет невозобновляемых ресурсов не нарушен")
+        else:
+            st.warning(f"Бюджет нарушен: {obj.get('budget_violations', '?')}")
+
+    if obj.get("secondary") is not None:
+        st.info(f"Вторичная метрика: {obj['secondary']}")
+
+    with st.expander("Расписание (job_id → start_time)", expanded=True):
+        if sched:
+            jobs_list = instance_data.get("jobs", [])
+            jobs_dict = {j.get("id"): j for j in jobs_list if isinstance(j, dict)}
+
+            # Таблица расписания
+            df = pd.DataFrame([
+                {
+                    "Job ID": jid,
+                    "Start Time": st_val,
+                    "Duration": jobs_dict.get(jid, {}).get("duration", 0) or 0,
+                    "End Time": st_val + (jobs_dict.get(jid, {}).get("duration") or 0),
+                }
+                for jid, st_val in sorted(sched.items(), key=lambda x: x[1])
+            ])
+            st.dataframe(df, use_container_width=True, hide_index=True)
+
+            # Диаграмма Ганта
+            try:
+                import altair as alt
+
+                gantt_data = []
+                for jid, start in sched.items():
+                    dur = jobs_dict.get(jid, {}).get("duration", 1) or 1
+                    gantt_data.append(
+                        {"Job": f"Job {jid}", "Start": start, "End": start + dur}
+                    )
+
+                if gantt_data:
+                    gantt_df = pd.DataFrame(gantt_data)
+                    chart = (
+                        alt.Chart(gantt_df)
+                        .mark_bar()
+                        .encode(
+                            x=alt.X("Start:Q", title="Время"),
+                            x2="End:Q",
+                            y=alt.Y("Job:N", sort="-x", title="Работа"),
+                            color=alt.Color(
+                                "Start:Q",
+                                scale=alt.Scale(scheme="blues"),
+                                legend=None,
+                            ),
+                            tooltip=["Job", "Start", "End"],
+                        )
+                        .properties(
+                            title="Диаграмма Ганта",
+                            height=max(200, len(sched) * 22),
+                        )
+                    )
+                    st.altair_chart(chart, use_container_width=True)
+
+            except ImportError:
+                st.info("Установите `altair` для отображения диаграммы Ганта.")
+
+    with st.expander("Полный объект результата (JSON)"):
+        st.json(result)
+
+    if verbose and log_output:
+        with st.expander("Лог выполнения"):
+            st.code(log_output, language="text")
+
+    st.download_button(
+        label="Скачать расписание (JSON)",
+        data=json.dumps(result, indent=2, ensure_ascii=False),
+        file_name="schedule_result.json",
+        mime="application/json",
+    )
+
+
+# Страница
 st.set_page_config(
     page_title="RCPSP Scheduler",
     layout="wide",
@@ -41,6 +242,8 @@ st.caption(
     "Каркас планировщика с подключаемыми эвристиками. "
     "Выберите параметры задачи, загрузите данные и запустите решение."
 )
+
+# Блок параметров задачи
 
 col_cfg, col_data = st.columns([1, 1], gap="large")
 
@@ -61,13 +264,6 @@ with col_cfg:
         conditional = st.checkbox("Условное планирование (conditional scheduling)")
         selection_groups = st.checkbox("Группы выбора (selection groups)")
         time_precedence = st.checkbox("Временные приоритеты (time precedence)")
-
-    st.divider()
-    st.subheader("Эвристика")
-
-    heuristic_label = st.selectbox("Функция выбора задачи (select_job_fn)",
-                                   list(HEURISTICS.keys()))
-    heuristic_key = HEURISTICS[heuristic_label]
 
     verbose = st.checkbox("Подробный лог выполнения", value=False)
 
@@ -115,217 +311,200 @@ with col_data:
         instance_data = None
 
 st.divider()
-run_col, _ = st.columns([1, 3])
+tab_builtin, tab_llm = st.tabs([
+    "Встроенная эвристика",
+    "Вставить код от LLM",
+])
 
-with run_col:
-    run_btn = st.button("Запустить планировщик", type="primary",
-                        use_container_width=True)
+# Вкладка 1: встроенные эвристики
 
-if run_btn:
-    if instance_data is None:
-        st.error("Сначала загрузите файл данных инстанса.")
-        st.stop()
+with tab_builtin:
+    heuristic_label = st.selectbox(
+        "Функция выбора задачи (select_job_fn)",
+        list(HEURISTICS.keys()),
+        key="builtin_heur",
+    )
+    heuristic_key = HEURISTICS[heuristic_label]
 
-    if uploaded_dsl:
+    if st.button("Запустить планировщик", type="primary", key="run_builtin"):
+        if instance_data is None:
+            st.error("Сначала загрузите файл данных инстанса.")
+            st.stop()
+
         try:
+            from scheduler_skeleton import solve, DSLParser
+        except ImportError:
+            st.error("Не найден `scheduler_skeleton.py` рядом с `app.py`.")
+            st.stop()
+
+        # DSL
+        if uploaded_dsl:
             uploaded_dsl.seek(0)
             dsl_dict = json.load(uploaded_dsl)
-        except Exception as e:
-            st.error(f"Ошибка чтения DSL-файла: {e}")
-            st.stop()
-    else:
-        # Генерируем DSL из UI-параметров
-        dsl_dict = {
-            "project_id": problem_id,
-            "problem_statement": {
-                "problem_type": problem_label,
-                "constraint_types": ["Precedence", "Resource Capacities"],
-                "resource_nature": resource_nature,
-                "execution_mode": execution_mode,
-                "uncertainty": "Deterministic",
-            },
-            "optimization_objectives": {
-                "primary": {
-                    "metric": primary_metric,
-                    "direction": primary_direction,
-                }
-            },
-            "graph_meta_characteristics": {},
-            "conditional_scheduling": {
-                "enabled": conditional,
-                "selection_groups_present": selection_groups,
-                "time_precedence_present": time_precedence,
-            },
-        }
-
-    # Сохраняем DSL во временный файл
-    with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False, encoding="utf-8"
-    ) as tmp:
-        json.dump(dsl_dict, tmp, ensure_ascii=False)
-        dsl_tmp_path = Path(tmp.name)
-
-    # Подключаем планировщик
-    try:
-        from scheduler_skeleton import solve, DSLParser
-    except ImportError:
-        st.error(
-            "Не найден `scheduler_skeleton.py`. "
-            "Убедитесь, что он лежит рядом с `streamlit_app.py`."
-        )
-        st.stop()
-
-    # Выбираем эвристику
-    def make_select_fn(key):
-        if key == "spt":
-            def fn(eligible_ids, jobs, snap, meta):
-                return min(eligible_ids, key=lambda jid: jobs[jid].duration)
-        elif key == "lpt":
-            def fn(eligible_ids, jobs, snap, meta):
-                return max(eligible_ids, key=lambda jid: jobs[jid].duration)
-        elif key == "mslk":
-            def fn(eligible_ids, jobs, snap, meta):
-                # MSLK: минимальный slack = duration / (successors + 1)
-                return min(
-                    eligible_ids,
-                    key=lambda jid: jobs[jid].duration / (
-                            len(jobs[jid].successors) + 1),
-                )
         else:
-            fn = None
-        return fn
+            dsl_dict = {
+                "project_id": problem_id,
+                "problem_statement": {
+                    "problem_type": problem_label,
+                    "constraint_types": ["Precedence", "Resource Capacities"],
+                    "resource_nature": resource_nature,
+                    "execution_mode": execution_mode,
+                    "uncertainty": "Deterministic",
+                },
+                "optimization_objectives": {
+                    "primary": {"metric": primary_metric,
+                                "direction": primary_direction}
+                },
+                "graph_meta_characteristics": {},
+                "conditional_scheduling": {
+                    "enabled": conditional,
+                    "selection_groups_present": selection_groups,
+                    "time_precedence_present": time_precedence,
+                },
+            }
 
+        with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as tmp:
+            json.dump(dsl_dict, tmp, ensure_ascii=False)
+            dsl_tmp_path = Path(tmp.name)
 
-    select_fn = make_select_fn(heuristic_key)
+        select_fn = make_builtin_select_fn(heuristic_key)
 
-    # Захват verbose-лога
-    import io
-    import sys
-
-    log_buf = io.StringIO()
-
-    with st.spinner("Выполняется планирование..."):
-        old_stdout = sys.stdout
-        sys.stdout = log_buf
-        try:
-            result = solve(
-                dsl_path=dsl_tmp_path,
-                instance_data=instance_data,
-                select_job_fn=select_fn,
+        with st.spinner("Выполняется планирование..."):
+            result, log_output, error = run_solver(
+                dsl_tmp_path, instance_data,
+                select_fn=select_fn,
+                allocate_fn=None,
                 verbose=verbose,
             )
-            error = None
-        except Exception as e:
-            result = None
-            error = str(e)
-        finally:
-            sys.stdout = old_stdout
 
-    log_output = log_buf.getvalue()
-
-    if error:
-        st.error(f"Ошибка при планировании: {error}")
-        if log_output:
-            with st.expander("Лог выполнения"):
-                st.code(log_output)
-        st.stop()
-
-    st.success("Планирование завершено!")
-    st.subheader("Результаты")
-
-    obj = result.get("objective", {})
-    sched = result.get("schedule", {})
-    iters = result.get("iterations", "?")
-    final_t = result.get("final_time", "?")
-
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Целевая метрика", obj.get("primary", "—"))
-    m2.metric("Работ в расписании", len(sched))
-    m3.metric("Итераций", iters)
-    m4.metric("Финальное время", final_t)
-
-    if "budget_feasible" in obj:
-        if obj["budget_feasible"]:
-            st.success("Бюджет невозобновляемых ресурсов не нарушен")
+        if error:
+            st.error(f"Ошибка при планировании: {error}")
+            if log_output:
+                with st.expander("Лог"):
+                    st.code(log_output)
         else:
-            st.warning(
-                f"Бюджет нарушен: {obj.get('budget_violations', '?')}"
-            )
+            render_results(result, instance_data, log_output, verbose)
 
-    if "secondary" in obj and obj["secondary"] is not None:
-        st.info(f"Вторичная метрика: {obj['secondary']}")
+# Вкладка 2: вставить код от LLM
 
-    # Расписание
-    with st.expander("Расписание (job_id → start_time)", expanded=True):
-        if sched:
-            import pandas as pd
-
-            df = pd.DataFrame(
-                [
-                    {
-                        "Job ID": jid,
-                        "Start Time": st_val,
-                        "Duration": instance_data.get("jobs", [{}])[
-                            min(jid - 1, len(instance_data.get("jobs", [])) - 1)
-                        ].get("duration", "?")
-                        if isinstance(instance_data.get("jobs"), list)
-                        else "?",
-                    }
-                    for jid, st_val in sorted(sched.items(), key=lambda x: x[1])
-                ]
-            )
-            st.dataframe(df, use_container_width=True)
-
-            # Диаграмма Ганта через st.bar_chart
-            try:
-                import altair as alt
-
-                gantt_data = []
-                jobs_list = instance_data.get("jobs", [])
-                jobs_dict = {j.get("id"): j for j in jobs_list if isinstance(j, dict)}
-
-                for jid, start in sched.items():
-                    dur = jobs_dict.get(jid, {}).get("duration", 1)
-                    gantt_data.append(
-                        {"Job": f"Job {jid}", "Start": start, "End": start + dur}
-                    )
-
-                if gantt_data:
-                    gantt_df = pd.DataFrame(gantt_data)
-                    chart = (
-                        alt.Chart(gantt_df)
-                        .mark_bar()
-                        .encode(
-                            x=alt.X("Start:Q", title="Время"),
-                            x2="End:Q",
-                            y=alt.Y("Job:N", sort="-x", title="Работа"),
-                            color=alt.Color(
-                                "Start:Q",
-                                scale=alt.Scale(scheme="blues"),
-                                legend=None,
-                            ),
-                            tooltip=["Job", "Start", "End"],
-                        )
-                        .properties(title="Диаграмма Ганта",
-                                    height=max(200, len(sched) * 22))
-                    )
-                    st.altair_chart(chart, use_container_width=True)
-            except ImportError:
-                st.info("Установите `altair` для отображения диаграммы Ганта.")
-
-    # Полный объект результата
-    with st.expander("Полный объект результата (JSON)"):
-        st.json(result)
-
-    # Лог
-    if verbose and log_output:
-        with st.expander("Лог выполнения"):
-            st.code(log_output, language="text")
-
-    # Кнопка скачивания результата
-    st.download_button(
-        label="Скачать расписание (JSON)",
-        data=json.dumps(result, indent=2, ensure_ascii=False),
-        file_name="schedule_result.json",
-        mime="application/json",
+with tab_llm:
+    st.markdown(
+        "Вставьте сгенерированный LLM код двух функций: "
+        "**`select_job`** и **`allocate`**. "
+        "Код компилируется и подставляется в каркас автоматически."
     )
+
+    # Справка по структуре объектов
+    with st.expander("Справка: какие поля доступны в функциях"):
+        st.code(SNAPSHOT_REFERENCE, language="python")
+
+    # Поле ввода кода
+    user_code = st.text_area(
+        "Код функций (select_job + allocate)",
+        value=DEFAULT_CODE,
+        height=320,
+        key="llm_code_input",
+        help="Вставьте Python-код двух функций. "
+             "Имена должны быть select_job и allocate.",
+    )
+
+    # Кнопка проверки синтаксиса (без запуска планировщика)
+    check_col, run_col = st.columns([1, 2])
+
+    with check_col:
+        if st.button("Проверить синтаксис", key="check_syntax"):
+            sel_fn, err_s = compile_fn(user_code, "select_job")
+            alloc_fn, err_a = compile_fn(user_code, "allocate")
+
+            if err_s:
+                st.error(f"select_job: {err_s}")
+            else:
+                st.success("select_job — OK")
+
+            if err_a:
+                st.warning(f"allocate: {err_a} (будет использована стандартная)")
+            else:
+                st.success("allocate — OK")
+
+    with run_col:
+        run_llm = st.button(
+            "Запустить с этим кодом", type="primary", key="run_llm"
+        )
+
+    if run_llm:
+        if instance_data is None:
+            st.error("Сначала загрузите файл данных инстанса.")
+            st.stop()
+
+        try:
+            from scheduler_skeleton import solve, DSLParser
+        except ImportError:
+            st.error("Не найден `scheduler_skeleton.py` рядом с `app.py`.")
+            st.stop()
+
+        # Компилируем select_job
+        select_fn, err_s = compile_fn(user_code, "select_job")
+        if err_s:
+            st.error(f"Ошибка в select_job: {err_s}")
+            st.stop()
+
+        # Компилируем allocate (если нет, используем стандартную)
+        allocate_fn, err_a = compile_fn(user_code, "allocate")
+        if err_a:
+            st.warning(f"allocate не найдена или содержит ошибку: {err_a}. "
+                       f"Используется стандартная.")
+            allocate_fn = None
+
+        # DSL
+        if uploaded_dsl:
+            uploaded_dsl.seek(0)
+            dsl_dict = json.load(uploaded_dsl)
+        else:
+            dsl_dict = {
+                "project_id": problem_id,
+                "problem_statement": {
+                    "problem_type": problem_label,
+                    "constraint_types": ["Precedence", "Resource Capacities"],
+                    "resource_nature": resource_nature,
+                    "execution_mode": execution_mode,
+                    "uncertainty": "Deterministic",
+                },
+                "optimization_objectives": {
+                    "primary": {"metric": primary_metric,
+                                "direction": primary_direction}
+                },
+                "graph_meta_characteristics": {},
+                "conditional_scheduling": {
+                    "enabled": conditional,
+                    "selection_groups_present": selection_groups,
+                    "time_precedence_present": time_precedence,
+                },
+            }
+
+        with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as tmp:
+            json.dump(dsl_dict, tmp, ensure_ascii=False)
+            dsl_tmp_path = Path(tmp.name)
+
+        with st.spinner("Выполняется планирование..."):
+            result, log_output, error = run_solver(
+                dsl_tmp_path, instance_data,
+                select_fn=select_fn,
+                allocate_fn=allocate_fn,
+                verbose=verbose,
+            )
+
+        if error:
+            st.error(f"Ошибка при планировании: {error}")
+            if log_output:
+                with st.expander("Лог"):
+                    st.code(log_output)
+            # Показываем полный traceback для отладки кода
+            import traceback
+
+            st.expander("Подробности ошибки").code(traceback.format_exc())
+        else:
+            render_results(result, instance_data, log_output, verbose)
