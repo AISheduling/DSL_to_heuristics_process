@@ -237,7 +237,7 @@ pip install -r requirements.txt
 Файлы `app.py` и `scheduler_skeleton.py` должны находиться в **одной директории**.
 
 ```bash
-streamlit run app.py
+streamlit run src/app.py
 ```
 
 Приложение откроется в браузере по адресу `http://localhost:8501`.
@@ -319,7 +319,7 @@ streamlit run app.py
 ## Запуск тестов
 
 ```bash
-python test_scheduler.py
+python src/test_scheduler.py
 ```
 
 Тесты проверяют:
