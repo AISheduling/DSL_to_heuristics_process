@@ -1,0 +1,31 @@
+{
+  "project_id": "RCMPSP_MULTI_PROJECT",
+  "problem_statement": {
+    "problem_type": "RCMPSP",
+    "constraint_types": ["Precedence", "Resource Capacities", "Cross-Project Resource Sharing"],
+    "resource_nature": "Renewable",
+    "execution_mode": "Single-Mode",
+    "uncertainty": "Deterministic"
+  },
+  "optimization_objectives": {
+    "primary": {
+      "metric": "Total Makespan (All Projects)",
+      "direction": "Minimize"
+    }
+  },
+  "graph_meta_characteristics": {
+    "nodes": 184,
+    "edges": 332,
+    "connected_components": 2,
+    "average_degree": 3.609,
+    "density": 0.0099,
+    "cpl": 15,
+    "relative_cpl": 0.0815,
+    "order_strength": 0.083,
+    "num_levels_bfs": 14,
+    "avg_parallelism": 13.143,
+    "max_parallelism": 33,
+    "num_roots": 2,
+    "num_leaves": 2
+  }
+}

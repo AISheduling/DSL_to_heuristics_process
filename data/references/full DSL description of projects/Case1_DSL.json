@@ -34,7 +34,7 @@
         "id": "integer",
         "name": "string",
         "capacity": "integer",
-        "type": "renewable"
+        "type": "string (value: renewable)"
       }
     },
     "jobs": {
@@ -43,16 +43,16 @@
         "id": "integer",
         "predecessors": "array[integer]",
         "successors": "array[integer]",
-        "modes": {
+        "duration": "integer",
+        "resource_requirements": {
           "type": "array",
           "items": {
-            "duration": "integer",
-            "resources_required": {
-              "type": "object",
-              "description": "{resource_id: amount}"
-            }
-          }
-        }
+            "resource_id": "integer",
+            "amount": "integer"
+          },
+          "description": "List of resource consumption entries. Empty list [] means the job requires no resources."
+        },
+        "name": "string (optional, only present for Supersource and Supersink)"
       }
     }
   }

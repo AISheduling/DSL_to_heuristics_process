@@ -1,0 +1,30 @@
+{
+  "project_id": "PSPLIB_J30_RCPSP",
+  "problem_statement": {
+    "constraint_types": ["Precedence", "Resource Capacities"],
+    "resource_nature": "Renewable",
+    "execution_mode": "Single-Mode",
+    "uncertainty": "Deterministic"
+  },
+  "optimization_objectives": {
+    "primary": {
+      "metric": "Makespan",
+      "direction": "Minimize"
+    }
+  },
+  "graph_meta_characteristics": {
+    "nodes": 32,
+    "edges": 48,
+    "connected_components": 1,
+    "average_degree": 3,
+    "density": 0.0484,
+    "cpl": 11,
+    "relative_cpl": 0.3438,
+    "order_strength": 0.2067,
+    "num_levels_bfs": 5,
+    "avg_parallelism": 6.4,
+    "max_parallelism": 11,
+    "num_roots": 1,
+    "num_leaves": 1
+  }
+}

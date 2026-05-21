@@ -1,0 +1,34 @@
+{
+  "project_id": "SINGLE_MACHINE_JIT",
+  "problem_statement": {
+    "problem_type": "Single-Machine Common Due Date",
+    "constraint_types": {
+      "hard": ["Single Resource Capacity"],
+      "soft": ["Common Due Date"]
+    },
+    "resource_nature": "Renewable",
+    "execution_mode": "Single-Mode",
+    "uncertainty": "Deterministic"
+  },
+  "optimization_objectives": {
+      "metric": "Total Earliness/Tardiness Penalty",
+      "direction": "Minimize"
+    },
+    "secondary": {
+      "metric": "Due Date Deviation",
+      "direction": "Minimize",
+      "parameters": {
+        "due_date": 106
+      }
+    },
+  "graph_meta_characteristics": {
+    "nodes": 50,
+    "edges": 0,
+    "connected_components": 50,
+    "average_degree": 0,
+    "density": 0.0,
+    "order_strength": 0.0,
+    "num_levels_bfs": 1,
+    "max_parallelism": 1
+  }
+}

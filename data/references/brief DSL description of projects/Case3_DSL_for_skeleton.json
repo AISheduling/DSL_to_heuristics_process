@@ -1,0 +1,46 @@
+{
+  "project_id": "RCPSP_MULTI_RESOURCE",
+  "problem_statement": {
+    "problem_type": "RCPSP with renewable and non-renewable resources",
+    "constraint_types": ["Precedence", "Resource Capacities", "Conditional Precedence"],
+    "resource_nature": "Renewable and Non-Renewable",
+    "execution_mode": "Single-Mode",
+    "uncertainty": "Deterministic"
+  },
+  "optimization_objectives": {
+    "primary": {
+      "metric": "Makespan",
+      "direction": "Minimize"
+    },
+    "secondary": {
+      "metric": "Non-Renewable Resource Consumption",
+      "direction": "Minimize",
+      "parameters": {
+        "budget_limit": {
+          "NRR1": 580,
+          "NRR2": 596
+        }
+      }
+    }
+  },
+  "graph_meta_characteristics": {
+    "nodes": 122,
+    "edges": 228,
+    "connected_components": 1,
+    "average_degree": 3.738,
+    "density": 0.0154,
+    "cpl": 26,
+    "relative_cpl": 0.2131,
+    "order_strength": 0.3732,
+    "num_levels_bfs": 20,
+    "avg_parallelism": 6.1,
+    "max_parallelism": 10,
+    "num_roots": 1,
+    "num_leaves": 1
+  },
+  "conditional_scheduling": {
+    "enabled": true,
+    "selection_groups_present": true,
+    "time_precedence_present": true
+  }
+}

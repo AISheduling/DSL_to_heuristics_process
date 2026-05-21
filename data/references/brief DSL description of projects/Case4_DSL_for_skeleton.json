@@ -1,0 +1,36 @@
+{
+  "project_id": "CONDITIONAL_RCPSP",
+  "problem_statement": {
+    "problem_type": "RCPSP with Conditional Constraints",
+    "constraint_types": ["Precedence", "Resource Capacities", "Selection Successors"],
+    "resource_nature": "Renewable",
+    "execution_mode": "Single-Mode",
+    "uncertainty": "Deterministic"
+  },
+  "optimization_objectives": {
+    "primary": {
+      "metric": "Makespan",
+      "direction": "Minimize"
+    }
+  },
+  "graph_meta_characteristics": {
+    "nodes": 122,
+    "edges": 216,
+    "connected_components": 1,
+    "average_degree": 3.541,
+    "density": 0.0146,
+    "cpl": 27,
+    "relative_cpl": 0.2213,
+    "order_strength": 0.3206,
+    "num_levels_bfs": 14,
+    "avg_parallelism": 8.714,
+    "max_parallelism": 10,
+    "num_roots": 4,
+    "num_leaves": 1
+  },
+  "conditional_scheduling": {
+    "enabled": true,
+    "selection_groups_present": true,
+    "time_precedence_present": true
+  }
+}
