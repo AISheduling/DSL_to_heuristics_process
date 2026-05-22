@@ -46,10 +46,11 @@
       "items": {
         "id": "integer",
         "duration": "integer",
-        "predecessors": "array[integer]",
         "resources_required": {
           "type": "object",
-          "description": "{resource_id: amount}"
+          "description": "always {\"1\": 1} — single machine, full capacity",
+          "key_type": "string",
+          "value_type": "integer"
         },
         "penalties": {
           "earliness_unit_penalty": "integer",

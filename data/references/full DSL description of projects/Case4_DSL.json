@@ -51,7 +51,7 @@
         "duration": "integer",
         "resources_required": {
           "type": "object",
-          "description": "{resource_id: amount}"
+          "description": "{resource_id (str): amount (int)}"
         },
         "precedences": {
           "type": "object",

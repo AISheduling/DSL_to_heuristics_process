@@ -33,7 +33,6 @@
       "type": "array",
       "items": {
         "id": "integer",
-        "name": "string",
         "capacity": "integer",
         "type": "global"
       }
@@ -43,7 +42,7 @@
       "items": {
         "project_id": "integer",
         "num_activities": "integer",
-        "due_date": "integer",
+        "due_date": "integer (0 = not set, ignore)",
         "activities": {
           "type": "array",
           "items": {

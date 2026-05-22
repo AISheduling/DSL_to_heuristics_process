@@ -48,25 +48,23 @@
       "type": "array",
       "items": {
         "id": "integer",
-        "name": "string",
-        "type": "renewable | non-renewable",
+        "type": "renewable | nonrenewable",
         "capacity": "integer (для renewable)",
-        "initial_stock": "integer (для non-renewable)"
+        "initial_stock": "integer (для nonrenewable)"
       }
     },
     "jobs": {
       "type": "array",
       "items": {
         "id": "integer",
-        "name": "string",
         "duration": "integer",
         "resources_required": {
           "type": "object",
-          "description": "{renewable_resource_id: amount}"
+          "description": "{resource_id (str): amount (int)}"
         },
         "resource_consumption": {
           "type": "object",
-          "description": "{non-renewable_resource_id: {consumption: int, production: int}}"
+          "description": "{resource_id (str): {\"consumption\": int, \"production\": int}}"
         },
         "precedences": {
           "time_successors": "array[integer]",
