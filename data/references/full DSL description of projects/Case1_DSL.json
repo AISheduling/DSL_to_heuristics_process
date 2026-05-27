@@ -3,7 +3,7 @@
   "problem_statement": {
     "constraint_types": ["Precedence", "Resource Capacities"],
     "resource_nature": "Renewable",
-    "execution_mode": "Single-Mode",
+    "execution_mode": "Single-Mode (each job has exactly one mode, no 'modes' field)",
     "uncertainty": "Deterministic"
   },
   "optimization_objectives": {
@@ -45,12 +45,13 @@
         "successors": "array[integer]",
         "duration": "integer",
         "resource_requirements": {
-          "type": "array",
+          "type": "array of objects",
           "items": {
             "resource_id": "integer",
             "amount": "integer"
           },
-          "description": "List of resource consumption entries. Empty list [] means the job requires no resources."
+          "example": [{"resource_id": 1, "amount": 4}, {"resource_id": 3, "amount": 2}],
+          "description": "List of resource consumption entries. Access as: for rr in job['resource_requirements']: rr['resource_id'], rr['amount']. Empty list [] means no resources needed."
         },
         "name": "string (optional, only present for Supersource and Supersink)"
       }
