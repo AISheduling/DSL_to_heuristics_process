@@ -30,13 +30,13 @@ def load_prompt(filepath: Path) -> str:
 
 def generate_heuristic(prompt_text: str, run_index: int) -> dict:
     response = llm_client.chat.completions.create(
-        model="gpt-5.4-nano",
+        model="openai/gpt-5.4-nano",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt_text}
         ],
         temperature=0.7,  # случайность (0.0 — детерминированно, 2.0 — максимум)
-        max_tokens=5000,  # максимум токенов в ответе
+        max_tokens=8000,  # максимум токенов в ответе
         n=1,  # сколько вариантов ответа вернуть
         timeout=300,
         response_format={"type": "json_object"}  # принудительный JSON
@@ -131,11 +131,12 @@ if __name__ == "__main__":
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     XL_DIR = OUTPUT_DIR / "experiment_text_results.xlsx"
 
-    text_files = sorted([f for f in TEXT_DIR.glob("*.txt")])
-
-    if not text_files:
-        print("TXT-файлы не найдены.")
-        sys.exit(1)
+    if len(sys.argv) > 1:
+        text_files = [Path(sys.argv[1])]
+        print(f"Режим: одиночный файл -> {text_files[0]}")
+    else:
+        text_files = sorted([f for f in TEXT_DIR.glob("*.txt")])
+        print(f"Режим: все файлы из {TEXT_DIR}")
 
     print(f"Найдено файлов: {len(text_files)}")
     print(f"Результаты будут сохранены в: {OUTPUT_DIR}\n")

@@ -41,7 +41,7 @@ def load_dsl(filepath):
 
 def generate_heuristic(dsl_content, run_index):
     response = llm_client.chat.completions.create(
-        model="gpt-5.4-nano",
+        model="openai/gpt-5.4-nano",
         messages=[
             {
                 "role": "system",
@@ -54,7 +54,7 @@ def generate_heuristic(dsl_content, run_index):
             }
         ],
         temperature=0.7,  # случайность (0.0 — детерминированно, 2.0 — максимум)
-        max_tokens=5000,  # максимум токенов в ответе
+        max_tokens=8000,  # максимум токенов в ответе
         n=1,  # сколько вариантов ответа вернуть
         timeout=300,
         response_format={"type": "json_object"}  # принудительный JSON

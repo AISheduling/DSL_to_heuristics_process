@@ -130,7 +130,7 @@ def generate_functions(dsl_content: dict, run_index: int) -> dict:
     )
 
     response = llm_client.chat.completions.create(
-        model="gpt-5.4-nano",
+        model="openai/gpt-5.4-nano",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_message},
