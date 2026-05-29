@@ -11,6 +11,7 @@
     "uncertainty": "Deterministic"
   },
   "optimization_objectives": {
+    "primary": {
       "metric": "Total Earliness/Tardiness Penalty",
       "direction": "Minimize"
     },
@@ -18,18 +19,19 @@
       "metric": "Due Date Deviation",
       "direction": "Minimize",
       "parameters": {
-        "due_date": 106
+        "due_date": 106,
+        "sum_processing_times": 533,
+        "h_factor": 0.6,
+        "due_date_formula": "floor(sum_processing_times * h_factor)",
+        "note": "due_date is global, not per-job"
       }
-    },
+    }
+  },
   "graph_meta_characteristics": {
     "nodes": 50,
     "edges": 0,
-    "connected_components": 50,
-    "average_degree": 0,
-    "density": 0.0,
-    "order_strength": 0.0,
-    "num_levels_bfs": 1,
-    "max_parallelism": 1
+    "avg_out_degree": 0,
+    "density": 0.0
   },
   "data_schema": {
     "resources": {
