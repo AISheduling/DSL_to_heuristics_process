@@ -13,6 +13,9 @@
 - [Запуск веб-приложения](#запуск-веб-приложения)
 - [Описание интерфейса `app.py`](#описание-интерфейса-apppy)
 - [Запуск тестов](#запуск-тестов)
+- [LLM-клиенты: генерация эвристик](#llm-клиенты-генерация-эвристик)
+- [Runners: прогон эвристик на данных](#runners-прогон-эвристик-на-данных)
+- [Ноутбуки анализа](#ноутбуки-анализа)
 
 ---
 
@@ -21,14 +24,19 @@
 ```
 DSL_to_heuristics_process/
 ├── src/
-│   ├── app.py                   # Streamlit-приложение (UI)
-│   ├── scheduler_skeleton.py    # Каркас решателя
-│   └── test_scheduler.py        # Тесты юнит + интеграционные
+│   ├── app.py                        # Streamlit-приложение (UI)
+│   ├── scheduler_skeleton.py         # Каркас решателя
+│   ├── calculate_metrics.py          # Вычисление метрик графов
+│   ├── test_scheduler.py             # Тесты юнит + интеграционные
+│   ├── llm_clients/                  # Скрипты генерации эвристик через LLM
+│   └── runners/                      # Скрипты прогона эвристик на данных
 ├── data/
-│   ├── references/              # DSL-файлы (Case1_DSL.json … Case5_DSL.json)
-│   └── processed/               # Готовые инстансы задач (JSON)
-├── experiments/                 # Эксперименты и промпты для LLM
-├── notebooks/                   # Jupyter-ноутбуки
+│   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
+│   ├── processed/                    # Готовые инстансы задач (JSON)
+│   └── references/                   # DSL и текстовые описания кейсов
+├── experiments/                      # Результаты генерации эвристик LLM
+├── results/                          # Метрики прогона эвристик
+├── notebooks/                        # Jupyter-ноутбуки анализа
 ├── .gitignore
 └── requirements.txt
 ```
@@ -329,3 +337,92 @@ python src/test_scheduler.py
 4. `ObjectiveCalculator` - расчет Makespan, штрафа, NRR-бюджета
 5. Интеграционные тесты `solve()` - синтетические инстансы по всем кейсам
 6. Smoke-тест - парсинг реальных DSL-файлов из `data/references/`
+
+---
+
+
+## LLM-клиенты: генерация эвристик
+
+Скрипты генерируют эвристики через LLM и сохраняют результаты в папку `experiments/`.
+
+Требуется переменная окружения:
+```bash
+set LITELLM_API_KEY=your_api_key     # Windows
+export LITELLM_API_KEY=your_api_key  # Linux/Mac
+```
+
+### DSL-подход
+
+```bash
+# Все кейсы
+python src\llm_clients\llm_client_for_DSL_description.py
+
+# Один кейс
+python src\llm_clients\llm_client_for_DSL_description.py "data\references\full DSL description of projects\Case1_DSL.json"
+```
+
+Читает DSL из `data/references/full DSL description of projects/`.  
+Сохраняет результаты в `experiments/experiments_dsl/<timestamp>/`.
+
+### Text-подход
+
+```bash
+# Все кейсы
+python src\llm_clients\llm_client_for_text_description.py
+
+# Один кейс
+python src\llm_clients\llm_client_for_text_description.py "data\references\text_description_of_projects\Case1_text.txt"
+```
+
+Читает промпты из `data/references/text_description_of_projects/`.  
+Сохраняет результаты в `experiments/experiment text/<timestamp>/`.
+
+### Skeleton-подход
+
+```bash
+python src\llm_clients\llm_client_for_generating_two_solver_functions.py
+```
+
+Читает краткие DSL из `data/references/brief DSL description of projects/`.  
+Сохраняет результаты в `experiments/experiment_skeleton/<timestamp>/`.
+
+---
+
+## Runners: прогон эвристик на данных
+
+После генерации эвристик запустите соответствующий runner для получения метрик.
+
+```bash
+# DSL-подход
+python src\runners\run_heuristics_dsl.py
+
+# Text-подход
+python src\runners\run_heuristics_text.py
+
+# Skeleton-подход
+python src\runners\run_heuristics_skeleton.py
+```
+
+Каждый runner:
+- читает сгенерированные эвристики из соответствующей папки `experiments/`
+- запускает их на инстансах из `data/processed/`
+- сохраняет результаты в `results/dsl/`, `results/text/` или `results/skeleton/`
+
+---
+
+## Ноутбуки анализа
+
+Ноутбуки находятся в `notebooks/2nd semester/` и читают данные напрямую из `results/` и `experiments/`.
+
+### Анализ_метрик_экспериментов.ipynb
+
+Сравнение генерируемых эвристик по трем подходам:
+- надежность генерации (% успешных запусков)
+- значения целевой функции по кейсам
+- анализ ошибок
+- детальный анализ по каждому кейсу с нижними границами (CPL)
+
+### Анализ_расхода_токенов.ipynb
+
+Анализ диалог-стоимости (prompt / completion / total tokens) по трем подходам и пяти кейсам.  
+Данные загружаются автоматически из `experiments/` по относительному пути:
