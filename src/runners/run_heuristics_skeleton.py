@@ -40,6 +40,23 @@ DSL_PATHS = {
     5: DSL_DIR / "Case5_DSL_for_skeleton.json",
 }
 
+CASE_MAP = {
+    "Case1_DSL_for_skeleton_results": 1,
+    "Case2_DSL_for_skeleton_results": 2,
+    "Case3_DSL_for_skeleton_results": 3,
+    "Case4_DSL_for_skeleton_results": 4,
+    "Case5_DSL_for_skeleton_results": 5,
+}
+
+
+def find_case_num(stem: str) -> int | None:
+    if stem in CASE_MAP:
+        return CASE_MAP[stem]
+    for key in CASE_MAP:
+        if stem.startswith(key):
+            return CASE_MAP[key]
+    return None
+
 
 def load_json(path: Path) -> dict:
     with open(path, encoding="utf-8") as f:
@@ -216,64 +233,55 @@ if __name__ == "__main__":
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
-    all_cases_results = {}
+    exp_dir = EXPERIMENTS_DIR / "experiment_skeleton"
+    if not exp_dir.exists():
+        print(f"ОШИБКА: папка не найдена: {exp_dir}")
+        raise SystemExit(1)
+
+    subdirs = sorted([d for d in exp_dir.iterdir() if d.is_dir()])
+
+    all_cases_results: dict[str, list] = {}
     all_rows = []
 
-    for case_num in range(1, 6):
-        exp_dir = EXPERIMENTS_DIR / f"experiment_skeleton_{case_num}_case"
-        if not exp_dir.exists():
-            print(f"\nПапка не найдена, пропуск: {exp_dir}")
-            continue
-
-        # Берем последнюю папку с датой
-        date_dirs = sorted(d for d in exp_dir.iterdir() if d.is_dir())
-        if not date_dirs:
-            print(f"Нет папок с результатами в {exp_dir}")
-            continue
-        latest_dir = date_dirs[-1]
-
-        # Ищем *_results.json
+    for subdir in subdirs:
         result_files = [
-            f for f in latest_dir.glob("*.json")
-            if not f.name.startswith("all_results")
+            f for f in subdir.glob("*.json")
+            if "_results" in f.stem
+            and not f.name.startswith("all_results")
         ]
-        if not result_files:
-            print(f"JSON с результатами не найден в {latest_dir}")
-            continue
-        results_json = result_files[0]
+        for results_json in sorted(result_files):
+            case_num = find_case_num(results_json.stem)
+            if case_num is None:
+                print(f"  [SKIP] Нет маппинга для '{results_json.stem}'")
+                continue
 
-        dsl_path = DSL_PATHS[case_num]
-        instance_path = CASE_INSTANCES[case_num]
+            dsl_path = DSL_PATHS[case_num]
+            instance_path = CASE_INSTANCES[case_num]
 
-        missing = [p for p in (results_json, dsl_path, instance_path) if not p.exists()]
-        if missing:
-            for p in missing:
-                print(f"ОШИБКА: файл не найден: {p}")
-            continue
+            missing = [p for p in (dsl_path, instance_path) if not p.exists()]
+            if missing:
+                for p in missing:
+                    print(f"ОШИБКА: файл не найден: {p}")
+                continue
 
-        print(f"\n{'=' * 60}")
-        print(f"КЕЙС {case_num}")
-        print(f"  Результаты LLM: {results_json.name}")
-        print(f"  DSL:            {dsl_path.name}")
-        print(f"  Instance:       {instance_path.name}")
+            print(f"\n{'='*60}")
+            print(f"КЕЙС {case_num} | {results_json.name}")
 
-        case_results = run_all(results_json, dsl_path, instance_path, case_num)
-        all_cases_results[f"case{case_num}"] = case_results
-        all_rows.extend(case_results)
+            case_results = run_all(results_json, dsl_path, instance_path, case_num)
+            key = f"case{case_num}"
+            all_cases_results.setdefault(key, []).extend(case_results)
+            all_rows.extend(case_results)
 
-        ok = [r for r in case_results if r.get("status") == "OK"]
-        print(f"\nИтого Case {case_num}: {len(ok)}/{len(case_results)} успешно")
-        if ok:
-            best = min(ok, key=lambda r: r.get("primary_objective") or float("inf"))
-            print(
-                f"Лучший: Run {best['run_index']} | {best['method']} | primary={best['primary_objective']}")
+            ok = [r for r in case_results if r.get("status") == "OK"]
+            print(f"\nИтого Case {case_num}: {len(ok)}/{len(case_results)} успешно")
+            if ok:
+                best = min(ok, key=lambda r: r.get("primary_objective") or float("inf"))
+                print(f"Лучший: Run {best['run_index']} | {best['method']} | primary={best['primary_objective']}")
 
-    # Итоговая сводка
-    print(f"\n{'=' * 60}")
+    print(f"\n{'='*60}")
     total_ok = sum(1 for r in all_rows if r.get("status") == "OK")
     print(f"ИТОГО по всем кейсам: {total_ok}/{len(all_rows)} успешно")
 
-    # Сохранение
     out_json = OUTPUT_DIR / f"heuristics_schedule_results_{timestamp}.json"
     out_xlsx = OUTPUT_DIR / f"heuristics_schedule_results_{timestamp}.xlsx"
     save_json(all_cases_results, out_json)

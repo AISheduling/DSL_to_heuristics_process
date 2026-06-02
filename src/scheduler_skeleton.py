@@ -215,9 +215,12 @@ class ProblemState:
         self.active_jobs[job_id] = finish
         for rid, amount in allocation.items():
             self.renewable_used[rid] = self.renewable_used.get(rid, 0) + amount
-        # Non-renewable consumption
+        # Non-renewable consumption (уменьшаем запас)
         for rid, cons in job.non_renewable_consumption.items():
             self.non_renewable_stock[rid] -= cons
+        # Non-renewable production (увеличиваем запас при наличии)
+        for rid, prod in job.__dict__.get("non_renewable_production", {}).items():
+            self.non_renewable_stock[rid] = self.non_renewable_stock.get(rid, 0) + prod
 
     def finish_jobs_at(self, time: int):
         """Завершает все активные работы, которые должны закончиться в момент time."""
@@ -422,11 +425,18 @@ class ProblemFactory:
             tp = pen.get("tardiness_unit_penalty", 0)
 
             # Non-renewable consumption (Case 3)
+            # consumption уменьшает запас, production увеличивает запас
             nrc_raw = j.get("resource_consumption", {})
             nrc = {}
+            nrp = {}
             for rid_str, info in nrc_raw.items():
                 rid = int(rid_str)
-                nrc[rid] = info.get("consumption", 0) - info.get("production", 0)
+                cons = info.get("consumption", 0)
+                prod = info.get("production", 0)
+                if cons > 0:
+                    nrc[rid] = cons
+                if prod > 0:
+                    nrp[rid] = prod
 
             # Selection groups (Cases 3, 4)
             prec = j.get("precedences", {})
@@ -449,6 +459,16 @@ class ProblemFactory:
                 non_renewable_consumption=nrc,
                 selection_groups=sel_groups,
             )
+            if nrp:
+                result[jid].__dict__["non_renewable_production"] = nrp
+
+        # Восстанавливаем predecessors из successors для Cases 3, 4
+        has_predecessors = any(result[jid].predecessors for jid in result)
+        if not has_predecessors and any(result[jid].successors for jid in result):
+            for jid, job in result.items():
+                for sid in job.successors:
+                    if sid in result and jid not in result[sid].predecessors:
+                        result[sid].predecessors.append(jid)
 
         return result
 
@@ -529,13 +549,26 @@ def run_schedule(
             log(f"  t={state.current_time:4d} | start job {job_id} "
                 f"dur={job.duration} alloc={allocation}")
 
-            # Conditional scheduling: помечаем neverscheduled альтернативы
+            # Conditional scheduling: selection_groups — это группы альтернатив.
+            # Когда работа job_id завершится,
+            # из каждой ее группы будет выбран один преемник.
+            # При запуске job_id помечаем ее родительскую группу как "выбранную ветвь":
+            # находим всех родителей, у которых job_id входит в selection_group,
+            # и помечаем остальных членов той группы как skipped.
             if meta.selection_groups_present:
-                for group in job.selection_groups:
-                    for alt_id in group:
-                        if alt_id != job_id and alt_id not in state.completed_jobs:
-                            state.skipped_jobs.add(alt_id)
-                            log(f"    -> skip job {alt_id} (selection group)")
+                # Прямая логика: selection_groups текущей работы — это её СОБСТВЕННЫЕ
+                # группы выбора преемников (они активируются при завершении работы).
+                # При запуске job_id ищем, в какие группы каких родителей он входит,
+                # и пропускаем альтернативы в тех же группах.
+                for parent_id, parent_job in state.jobs.items():
+                    if parent_id not in state.completed_jobs and parent_id != job_id:
+                        continue  # только завершённые родители
+                    for group in parent_job.selection_groups:
+                        if job_id in group:
+                            for alt_id in group:
+                                if alt_id != job_id and alt_id not in state.schedule and alt_id not in state.skipped_jobs:
+                                    state.skipped_jobs.add(alt_id)
+                                    log(f"    -> skip job {alt_id} (alt in selection group of {parent_id})")
         else:
             log(f"  t={state.current_time:4d} | job {job_id} blocked — advance_time")
             if state.active_jobs:
