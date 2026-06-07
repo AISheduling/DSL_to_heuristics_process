@@ -147,11 +147,9 @@ def render_results(result, instance_data, log_output, verbose):
     obj = result.get("objective", {})
     sched = result.get("schedule", {})
 
-    m1, m2, m3, m4 = st.columns(4)
+    m1, m2 = st.columns(2)
     m1.metric("Целевая метрика", obj.get("primary", "—"))
     m2.metric("Работ в расписании", len(sched))
-    m3.metric("Итераций", result.get("iterations", "?"))
-    m4.metric("Финальное время", result.get("final_time", "?"))
 
     if "budget_feasible" in obj:
         if obj["budget_feasible"]:
