@@ -32,6 +32,8 @@ DSL_to_heuristics_process/
 │   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
 │   ├── processed/                    # Готовые инстансы задач (JSON)
 │   └── references/                   # DSL и текстовые описания кейсов
+├── docs/
+│   └── Технический_отчет.pdf         # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
 │   └── runners/                      # Скрипты прогона эвристик на данных
 ├── tests/
