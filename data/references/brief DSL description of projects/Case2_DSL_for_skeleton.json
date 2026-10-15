@@ -19,9 +19,9 @@
       "metric": "Due Date Deviation",
       "direction": "Minimize",
       "parameters": {
-        "due_date": 106,
-        "sum_processing_times": 533,
-        "h_factor": 0.6,
+        "due_date": 109,
+        "sum_processing_times": 549,
+        "h_factor": 0.2,
         "due_date_formula": "floor(sum_processing_times * h_factor)",
         "note": "due_date is global, not per-job"
       }
