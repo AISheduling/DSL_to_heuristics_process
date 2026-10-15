@@ -37,16 +37,17 @@ HEURISTICS = {
 # Подсказка со структурой объектов показывается рядом с полем вставки кода
 SNAPSHOT_REFERENCE = """\
 # select_job(eligible_ids, jobs, snapshot, meta) -> int
-#   eligible_ids : list[int]            — id работ, готовых к запуску
+#   eligible_ids : list[int]            — id работ, у которых все предшественники запланированы
 #   jobs         : dict[int, Job]       — все работы
-#   snapshot     : dict                 — текущее состояние:
-#       "current_time"      : int
-#       "completed_jobs"    : list[int]
-#       "active_jobs"       : dict[int, int]   # job_id -> finish_time
+#   snapshot     : dict                 — состояние планировщика (Serial SGS):
+#       "scheduled_jobs"    : list[int]
+#       "start_times"       : dict[int, int]   # job_id -> start
+#       "finish_times"      : dict[int, int]   # job_id -> finish
 #       "eligible_jobs"     : list[int]
-#       "renewable_used"    : dict[int, int]   # resource_id -> used
+#       "capacity"          : dict[int, int]   # resource_id -> мощность
 #       "non_renewable_stock": dict[int, int]
 #       "skipped_jobs"      : list[int]
+#       "current_time"      : int              # горизонт поставленных работ
 #   meta         : DSLMeta              — метаданные DSL:
 #       .primary_metric, .primary_direction
 #       .is_single_machine, .is_multi_project
@@ -54,14 +55,15 @@ SNAPSHOT_REFERENCE = """\
 #
 # Job attributes:
 #   .id, .duration, .predecessors, .successors
-#   .resources_required  : dict[int, int]  # resource_id -> amount
+#   .resources_required  : dict[int, int]  # resource_id -> amount (бронирует каркас)
 #   .earliness_penalty, .tardiness_penalty
 #   .non_renewable_consumption : dict[int, int]
 #
-# allocate(job, resources, snapshot, meta) -> dict[int, int]
-#   resources    : dict[int, Resource]
-#       Resource: .id, .name, .capacity, .r_type, .initial_stock
-#   Возвращает {resource_id: amount}
+# allocate(job, feasible_starts, snapshot, meta) -> int
+#   feasible_starts : list[int]  — допустимые времена старта по возрастанию,
+#                                  допустимость гарантирует каркас
+#   Возвращает одно значение из feasible_starts (иначе берётся самое раннее
+#   и считается нарушение allocate_violations)
 # ─────────────────────────────────────────────────────────────
 """
 
@@ -71,9 +73,9 @@ def select_job(eligible_ids, jobs, snapshot, meta):
     return max(eligible_ids, key=lambda jid: len(jobs[jid].successors))
 
 
-def allocate(job, resources, snapshot, meta):
-    # Выделяем ровно столько, сколько требует работа
-    return dict(job.resources_required)
+def allocate(job, feasible_starts, snapshot, meta):
+    # Ставим работу в самое раннее допустимое время
+    return feasible_starts[0]
 """
 
 
@@ -147,9 +149,21 @@ def render_results(result, instance_data, log_output, verbose):
     obj = result.get("objective", {})
     sched = result.get("schedule", {})
 
-    m1, m2 = st.columns(2)
-    m1.metric("Целевая метрика", obj.get("primary", "—"))
+    status = result.get("status", "unknown")
+    if status == "complete":
+        st.success("Расписание полное (status=complete)")
+    else:
+        st.error(f"Расписание неполное: status={status}, причина={result.get('reason')} — "
+                 f"{result.get('detail')}. Целевая метрика не считается.")
+    if result.get("invalid_select_count") or result.get("allocate_violations"):
+        st.warning(f"Нарушения контракта функций: select_job вне eligible — "
+                   f"{result.get('invalid_select_count', 0)}, allocate вне feasible_starts — "
+                   f"{result.get('allocate_violations', 0)}")
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Целевая метрика", "—" if obj.get("primary") is None else obj.get("primary"))
     m2.metric("Работ в расписании", len(sched))
+    m3.metric("Не запланировано", len(result.get("unscheduled", [])))
 
     if "budget_feasible" in obj:
         if obj["budget_feasible"]:

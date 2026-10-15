@@ -7,10 +7,10 @@
   },
   "parameters": {
     "num_jobs": 50,
-    "h_factor": 0.6,
-    "total_duration": 533,
-    "common_due_date": 106,
-    "common_due_date_formula": "round(total_duration * h_factor)"
+    "h_factor": 0.2,
+    "total_duration": 549,
+    "common_due_date": 109,
+    "common_due_date_formula": "floor(total_duration * h_factor)"
   },
   "resources": [
     {

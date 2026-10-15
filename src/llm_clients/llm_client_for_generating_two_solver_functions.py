@@ -34,25 +34,28 @@ def select_job_fn(
 ) -> int:
 ```
 
-* Вызывается каждый раз, когда каркас формирует список доступных к запуску работ.
+* Вызывается каждый раз, когда каркас формирует список готовых работ (все предшественники уже запланированы).
 * Должна вернуть ровно один `job_id` из `eligible_ids`.
-* Если вернуть id не из списка — каркас автоматически подставит `eligible_ids[0]`.
+* Возврат id не из списка фиксируется как нарушение (`invalid_select_count`), каркас подставляет `eligible_ids[0]`.
 
-* Функция 2: выделение ресурсов
+* Функция 2: выбор времени старта
 
 ```python
 def allocate_fn(
     job: Job,
-    resources: dict[int, Resource],
+    feasible_starts: list[int],
     snapshot: dict,
     meta: DSLMeta,
-) -> dict[int, int]:
+) -> int:
 ```
 
-* Вызывается сразу после выбора работы.
-* Должна вернуть словарь `{resource_id: amount}` — сколько единиц каждого ресурса выделить.
-* Выделяй ровно столько, сколько требует работа: `job.resources_required`.
-* Если ресурсов не хватает — каркас сам вызовет `advance_time()`, повторять не нужно.
+* Вызывается сразу после выбора работы. Ресурсы `job.resources_required` каркас бронирует сам.
+* `feasible_starts` — допустимые времена старта по возрастанию (по предшествованию и профилю
+  ресурсов на всём интервале работы, включая вставку раньше уже запланированных работ);
+  `feasible_starts[0]` — самое раннее. Допустимость гарантирует каркас.
+* Должна вернуть одно значение из `feasible_starts`: ставить работу как можно раньше или
+  оставить запас (например, под директивный срок или под последующие работы).
+* Возврат значения не из списка фиксируется как нарушение (`allocate_violations`), берётся `feasible_starts[0]`.
 
 СТРУКТУРЫ ДАННЫХ, ДОСТУПНЫЕ В ФУНКЦИЯХ
 
@@ -63,6 +66,8 @@ job.duration: int
 job.predecessors: list[int]
 job.successors: list[int]
 job.resources_required: dict[int, int]
+job.project_id: int | None
+job.local_id: int | None
 job.earliness_penalty: int
 job.tardiness_penalty: int
 job.non_renewable_consumption: dict[int, int]
@@ -78,15 +83,16 @@ resource.r_type: str
 resource.initial_stock: int
 ```
 
-### snapshot (dict) — состояние планировщика в текущий момент
+### snapshot (dict) — состояние планировщика (Serial SGS: работы ставятся в допустимые моменты, не только в "текущий")
 ```python
-snapshot["current_time"]: int
-snapshot["completed_jobs"]: list[int]
-snapshot["active_jobs"]: dict[int, int]
+snapshot["scheduled_jobs"]: list[int]          # уже поставленные работы
+snapshot["start_times"]: dict[int, int]        # job_id -> start
+snapshot["finish_times"]: dict[int, int]       # job_id -> finish
 snapshot["eligible_jobs"]: list[int]
-snapshot["renewable_used"]: dict[int, int]
+snapshot["capacity"]: dict[int, int]           # resource_id -> мощность
 snapshot["non_renewable_stock"]: dict[int, int]
 snapshot["skipped_jobs"]: list[int]
+snapshot["current_time"]: int                  # горизонт: максимальное finish среди поставленных
 ```
 
 ### meta (DSLMeta) — метаданные задачи из DSL

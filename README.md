@@ -25,7 +25,8 @@
 DSL_to_heuristics_process/
 ├── src/
 │   ├── app.py                        # Streamlit-приложение (UI)
-│   ├── scheduler_skeleton.py         # Каркас решателя
+│   ├── scheduler_skeleton.py         # Каркас решателя (SSGS + legacy)
+│   ├── schedule_checker.py           # Независимый чекер расписаний (не импортирует каркас)
 │   ├── calculate_metrics.py          # Вычисление метрик графов
 │   └── llm_clients/                  # Скрипты генерации эвристик через LLM
 ├── data/
@@ -33,11 +34,18 @@ DSL_to_heuristics_process/
 │   ├── processed/                    # Готовые инстансы задач (JSON)
 │   └── references/                   # DSL и текстовые описания кейсов
 ├── docs/
+│   ├── adr/                          # Архитектурные решения (ADR 0001 — статусы, чекер, контракт allocate_fn)
+│   ├── literature-review/            # Обзор литературы (этап 0)
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
-│   └── runners/                      # Скрипты прогона эвристик на данных
-├── tests/
-│   └── test_scheduler.py             # Тесты юнит + интеграционные
+│   └── runners/                      # Прогон эвристик: runner_common.py + три точки входа
+├── tests/                            # pytest: ядро, чекер, раннеры, пять постановок
+│   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
+│   ├── test_checker.py               # Сломанные и корректные расписания через чекер
+│   ├── test_runner_common.py         # Статусы, извлечение расписания, таймаут
+│   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
+├── pytest.ini
+├── requirements-dev.txt
 ├── results/                          # Метрики прогона эвристик
 ├── notebooks/                        # Jupyter-ноутбуки анализа
 ├── .gitignore
@@ -54,7 +62,12 @@ DSL_to_heuristics_process/
 | `SINGLE_MACHINE_JIT` | Одна машина, JIT (Just-in-Time) | Суммарный штраф за раннее/позднее выполнение |
 | `RCPSP_MULTI_RESOURCE` | RCPSP с невозобновляемыми ресурсами | Makespan + ограничение бюджета NRR |
 | `CONDITIONAL_RCPSP` | RCPSP с условными ограничениями | Makespan |
-| `RCMPSP_MULTI_PROJECT` | Многопроектный RCPSP | Суммарный makespan всех проектов |
+| `RCMPSP_MULTI_PROJECT` | Многопроектный RCPSP | Суммарный makespan всех проектов (`total_makespan`; максимум отдаётся как `portfolio_makespan`) |
+
+Cases 3 и 4 (данные 4TU с группами выбора) в текущем каркасе **не поддержаны**: после выбора
+ветви потомки пропущенных работ не становятся готовыми, обе схемы останавливаются с
+`status="incomplete", reason="deadlock"`. Так было и в версии `d3dadbc6`. Семантику групп
+выбора нужно определить отдельно (см. `docs/adr/0001-...md`).
 
 ---
 
@@ -111,7 +124,9 @@ class Job:
     earliness_penalty: int               # штраф за раннее выполнение (Case 2)
     tardiness_penalty: int               # штраф за позднее выполнение (Case 2)
     project_id: int | None               # id проекта (Case 5)
+    local_id: int | None                 # id внутри проекта; id = project_id * 10^k + local_id
     non_renewable_consumption: dict[int, int]  # потребление NRR (Case 3)
+    non_renewable_production: dict[int, int]   # производство NRR (Case 3)
     selection_groups: list[list[int]]    # группы альтернатив (Cases 3, 4)
 ```
 
@@ -123,25 +138,28 @@ class Resource:
     id: int
     name: str
     capacity: int       # максимальная мощность (для renewable)
-    r_type: str         # "renewable" / "non-renewable" / "global"
+    r_type: str         # "renewable" | "non-renewable" (global, nonrenewable, non_renewable нормализуются)
     initial_stock: int  # начальный запас (для non-renewable)
 ```
 
 ### `ProblemState` (dataclass)
 
-Изменяемое состояние задачи в процессе планирования. Содержит текущее расписание, активные работы, потребление ресурсов и т.д.
+Изменяемое состояние задачи: расписание, профиль загрузки возобновляемых ресурсов по тактам,
+запас невозобновляемых, пропущенные работы; для схемы `legacy` — ещё текущее время,
+активные работы и забронированные выделения.
 
 Ключевые методы:
 
-| Метод | Назначение |
-|---|---|
-| `eligible_jobs()` | Список работ, готовых к запуску (все предшественники выполнены) |
-| `can_allocate(job, allocation)` | Проверяет, хватает ли ресурсов на запуск работы |
-| `start_job(job_id, allocation)` | Запускает работу, резервирует ресурсы |
-| `finish_jobs_at(time)` | Завершает активные работы, освобождает ресурсы |
-| `advance_time()` | Перематывает время до ближайшего завершения работы |
-| `is_done()` | Все работы выполнены или пропущены? |
-| `snapshot()` | Словарь-снапшот текущего состояния для передачи в LLM-функции |
+| Метод | Схема | Назначение |
+|---|---|---|
+| `eligible_jobs(scheme)` | обе | Готовые работы: `ssgs` — все предшественники запланированы; `legacy` — завершены |
+| `feasible_starts(job, limit)` | ssgs | Допустимые времена старта по предшествованию и профилю ресурсов на `[t, t+d)` |
+| `place_job(job_id, start)` | ssgs | Ставит работу, обновляет профиль, запас NRR и группы выбора |
+| `can_allocate(job, allocation)` | legacy | Выделение покрывает потребность, укладывается в мощности, запаса NRR хватает |
+| `start_job(job_id, allocation)` | legacy | Бронирует не меньше `resources_required`, запоминает выделение |
+| `finish_jobs_at(time)` / `advance_time()` | legacy | Освобождает ровно забронированное |
+| `unscheduled_jobs()` / `is_done()` | обе | Незапланированные (кроме пропущенных) / всё поставлено |
+| `snapshot(scheme)` | обе | Словарь для LLM-функций (см. ниже) |
 
 ### `ProblemFactory`
 
@@ -154,15 +172,18 @@ state = factory.build(instance_data, meta)
 
 ### `ObjectiveCalculator`
 
-Вычисляет значение целевой метрики по завершенному расписанию:
+Вычисляет цель по **полному** расписанию (по неполному `run_schedule` отдаёт `primary=None`):
 
 ```python
-calc = ObjectiveCalculator()
-objective = calc.compute(state)
-# objective["primary"]         — значение основной метрики
-# objective["budget_feasible"] — соблюден ли бюджет NRR (Case 3)
-# objective["job_details"]     — детали по каждой работе (Case 2)
+objective = ObjectiveCalculator.compute(state)
+# objective["primary"]             — основная метрика
+# objective["makespan"]            — Cases 1, 3, 4
+# objective["total_makespan"]      — Case 5: сумма makespan проектов; "portfolio_makespan" — максимум
+# objective["total_et_penalty"]    — Case 2
+# objective["non_renewable_used"], ["budget_violations"], ["budget_feasible"] — Case 3
 ```
+
+Для публикуемых чисел используется не он, а независимый чекер (ниже).
 
 ### Публичный API
 
@@ -172,64 +193,100 @@ objective = calc.compute(state)
 
 Шаги 1 и 2: парсит DSL и строит начальное состояние.
 
-#### `run_schedule(state, select_job_fn, allocate_fn, verbose) -> dict`
+#### `run_schedule(state, select_job_fn, allocate_fn=None, verbose=False, scheme="ssgs", strict=False) -> dict`
 
-Запускает цикл планирования по схеме **SSGS** (Serial Schedule Generation Scheme). Принимает функции выбора и выделения ресурсов.
+Строит расписание функциями выбора работы и выбора времени старта.
 
-#### `solve(dsl_path, instance_data, select_job_fn, allocate_fn, verbose) -> dict`
-
-Высокоуровневая точка входа. Объединяет `build_state` + `run_schedule`. Если функции не переданы, используются встроенные эвристики (Most Successors / SPT).
+- `scheme="ssgs"` (по умолчанию) — стандартная Serial SGS: готовы работы, у которых все
+  предшественники запланированы; выбранная работа ставится в одно из допустимых времён
+  старта (по предшествованию и профилю ресурсов на всём интервале), включая вставку
+  раньше уже поставленных работ.
+- `scheme="legacy"` — пошаговая схема версии `d3dadbc6` (старт только в текущий момент,
+  готовность по завершённым предшественникам). Оставлена для воспроизведения весенних
+  результатов; ресурсы и в ней бронируются по `resources_required`.
+- `strict=True` — нарушение контракта функций или неполное расписание бросают
+  `SchedulerContractError`.
 
 ```python
-from scheduler_skeleton import solve
-
-result = solve(
-    dsl_path="data/references/Case1_DSL.json",
-    instance_data=instance_data,
-    select_job_fn=None,
-    allocate_fn=None,
-    verbose=True,
-)
-# result["schedule"]             — dict {job_id: start_time}
-# result["objective"]["primary"] — значение метрики
-# result["iterations"]           — число итераций
-# result["final_time"]           — время завершения
+result = run_schedule(state, select_job_fn, allocate_fn)
+# result["status"]                 — "complete" | "incomplete"
+# result["reason"]                 — None | "deadlock" | "infeasible" | "max_iterations"
+# result["detail"], ["unscheduled"], ["skipped"]
+# result["invalid_select_count"]   — сколько раз select_job_fn вернула id не из eligible
+# result["allocate_violations"]    — сколько раз allocate_fn вернула недопустимое значение
+# result["schedule"]               — {job_id: start_time}
+# result["objective"]["primary"]   — None, если status != "complete"
+# result["iterations"], ["final_time"], ["scheme"]
 ```
+
+Ошибки не скрываются: невалидный `job_id` заменяется на `eligible[0]`, недопустимое
+время старта — на самое раннее, но оба случая попадают в счётчики результата.
+
+#### `solve(dsl_path, instance_data, select_job_fn=None, allocate_fn=None, verbose=False, scheme="ssgs", strict=False) -> dict`
+
+`build_state` + `run_schedule`. Без функций используются встроенные правила
+(Most Successors / SPT для одной машины; самое раннее время старта).
 
 ### Интерфейс функций для LLM
 
-Каркас принимает две функции, которые можно реализовать вручную или сгенерировать языковой моделью:
+Каркас принимает две функции. Допустимость расписания обеспечивает каркас, у функций
+остаются только решения: какую работу ставить следующей и в какое из допустимых времён.
 
 ```python
-def select_job(eligible_ids, jobs, snapshot, meta) -> int:
+def select_job_fn(eligible_ids, jobs, snapshot, meta) -> int:
     """
-    Выбирает следующую работу для запуска.
+    Выбирает следующую работу.
 
-    eligible_ids : list[int]          — id работ, готовых к запуску
+    eligible_ids : list[int]          — работы, у которых все предшественники запланированы
     jobs         : dict[int, Job]     — все работы задачи
-    snapshot     : dict               — текущее состояние планировщика:
-        "current_time"       : int
-        "completed_jobs"     : list[int]
-        "active_jobs"        : dict[int, int]   # job_id -> finish_time
+    snapshot     : dict               — состояние планировщика:
+        "scheduled_jobs"     : list[int]
+        "start_times"        : dict[int, int]   # job_id -> start
+        "finish_times"       : dict[int, int]   # job_id -> finish
         "eligible_jobs"      : list[int]
-        "renewable_used"     : dict[int, int]   # resource_id -> used
+        "capacity"           : dict[int, int]   # resource_id -> мощность
         "non_renewable_stock": dict[int, int]
         "skipped_jobs"       : list[int]
+        "current_time"       : int              # горизонт поставленных работ
     meta         : DSLMeta            — метаданные DSL
     """
     return max(eligible_ids, key=lambda jid: len(jobs[jid].successors))
 
 
-def allocate(job, resources, snapshot, meta) -> dict[int, int]:
+def allocate_fn(job, feasible_starts, snapshot, meta) -> int:
     """
-    Определяет, сколько каждого ресурса выделить работе.
+    Выбирает время старта из допустимых.
 
-    job       : Job
-    resources : dict[int, Resource]
-    Возвращает: {resource_id: amount}
+    feasible_starts : list[int]  — допустимые времена по возрастанию (построил каркас:
+                                   предшествование + профиль ресурсов на всём интервале)
+    Возвращает одно значение из feasible_starts; иначе берётся самое раннее
+    и увеличивается allocate_violations.
     """
-    return dict(job.resources_required)
+    return feasible_starts[0]
 ```
+
+В схеме `legacy` действует старый контракт `allocate_fn(job, resources, snapshot, meta) -> dict[int, int]`;
+выделение меньше `resources_required` или по неизвестному ресурсу считается нарушением,
+каркас бронирует требуемое.
+
+### Независимый чекер `schedule_checker.py`
+
+Один чекер для всех подходов (Text, DSL, Skeleton, встроенные правила). Не импортирует
+каркас, проверяет расписание по исходному инстансу и пересчитывает цель сам:
+
+```python
+from schedule_checker import validate_schedule
+
+report = validate_schedule(instance_data, result["schedule"])
+# report["status"]      — "valid" | "invalid" | "incomplete" | "empty"
+# report["violations"]  — [{"type": "precedence" | "renewable_capacity" | "non_renewable_budget"
+#                           | "missing_job" | "unknown_job" | "invalid_start" | "selection_group", ...}]
+# report["makespan"], report["objective"]["primary"] — пересчитаны по данным (None, если не valid)
+# report["scheduled"], report["total"], report["skipped"]
+```
+
+`valid` не означает `optimal`. Ключ работы многопроектной задачи: глобальный id
+(`project_id * 10^k + local_id`), кортеж `(project_id, local_id)` или строка `"project_id:local_id"`.
 
 ---
 
@@ -329,16 +386,22 @@ streamlit run src/app.py
 ## Запуск тестов
 
 ```bash
-python tests/test_scheduler.py
+pip install -r requirements-dev.txt
+python -m pytest
 ```
 
-Тесты проверяют:
-1. `DSLParser` - корректный разбор всех 5 DSL-кейсов
-2. `ProblemFactory` - правильная структура Jobs и Resources
-3. `ProblemState` - механика состояния (eligible\_jobs, advance\_time, ресурсный учет)
-4. `ObjectiveCalculator` - расчет Makespan, штрафа, NRR-бюджета
-5. Интеграционные тесты `solve()` - синтетические инстансы по всем кейсам
-6. Smoke-тест - парсинг реальных DSL-файлов из `data/references/`
+Пути в тестах относительные, запуск из чистого клона. Что проверяется:
+1. `tests/test_kernel.py` — каждый дефект ядра из issue #1 отдельным негативным тестом:
+   формат `resource_requirements` Case 1, написание `nonrenewable`, бюджет NRR,
+   обход ресурсов через `allocate_fn`, освобождение забронированного, тупик → `incomplete`,
+   коллизии id в Case 5, строгий парсинг, согласованность срока Case 2, вставка SSGS в окно.
+2. `tests/test_checker.py` — намеренно сломанные расписания отклоняются с нужной причиной,
+   корректные проходят; чекер не импортирует каркас.
+3. `tests/test_runner_common.py` — единые статусы, извлечение расписания из вывода полного
+   решателя, таймаут, доли от всех генераций.
+4. `tests/test_skeleton_cases.py` — парсер, фабрика, состояние, цель, `solve()` в обеих схемах
+   на синтетических инстансах и на `data/processed/` с перепроверкой чекером; для Cases 3–4
+   закреплён честный статус `incomplete`.
 
 ---
 
@@ -396,19 +459,45 @@ python src\llm_clients\llm_client_for_generating_two_solver_functions.py
 
 ```bash
 # DSL-подход
-python src\runners\run_heuristics_dsl.py
+python experiments/runners/run_heuristics_dsl.py
 
 # Text-подход
-python src\runners\run_heuristics_text.py
+python experiments/runners/run_heuristics_text.py
 
-# Skeleton-подход
-python src\runners\run_heuristics_skeleton.py
+# Skeleton-подход (по умолчанию scheme=ssgs; весенние функции — только --scheme legacy)
+python experiments/runners/run_heuristics_skeleton.py [--scheme ssgs|legacy]
 ```
 
-Каждый runner:
-- читает сгенерированные эвристики из соответствующей папки `experiments/`
-- запускает их на инстансах из `data/processed/`
-- сохраняет результаты в `results/dsl/`, `results/text/` или `results/skeleton/`
+Общий слой — `experiments/runners/runner_common.py`. Каждый runner:
+- читает сгенерированные эвристики из соответствующей папки `experiments/`;
+- запускает их на инстансах из `data/processed/` в отдельном процессе с общим таймаутом 30 с;
+- проверяет расписание независимым чекером и берёт качество только из него;
+- сохраняет строки и сводку в `results/dsl/`, `results/text/` или `results/skeleton/`.
+
+Единые статусы для всех подходов, доли считаются **от всех генераций**:
+
+| Статус | Значение |
+|---|---|
+| `generation_error` | LLM не вернула код |
+| `compile_error` | код не компилируется или нет нужной функции |
+| `runtime_error` | исключение при выполнении |
+| `timeout` | превышен таймаут |
+| `no_schedule` | выполнение завершилось, но расписание из вывода не извлекается |
+| `infeasible` | чекер нашёл нарушения |
+| `incomplete` | расписание допустимо, но не все работы запланированы |
+| `ok` | полное допустимое расписание |
+
+Для Skeleton в строку дополнительно пишутся `kernel_status`, `reason`,
+`invalid_select_count`, `allocate_violations`, `scheme`.
+
+## Версии каркаса и данных
+
+- Весенние результаты (технический отчёт, версия `d3dadbc6`) получены каркасом из коммита
+  `224bf39` («improve scheduler_skeleton and runner for Cases 3-5»), который дополнял
+  `77187c3`. Это та версия, что воспроизводится схемой `legacy`; её дефекты и причины
+  неинтерпретируемости чисел — в `docs/adr/0001-...md` и issue #1.
+- Case 2: директивный срок приведён к сырому файлу OR-Library (`sch50`, инстанс 1, `h = 0.2`):
+  `Σp = 549`, `d = 109` вместо `106` (в данных, DSL и текстовом описании).
 
 ---
 
