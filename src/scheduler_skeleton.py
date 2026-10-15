@@ -333,6 +333,8 @@ class ProblemState:
             if amount > self.resources[rid].capacity:
                 return []
         es = self.earliest_precedence_start(job)
+        if job.duration == 0:
+            return [es]  # фиктивной работе нечего ждать
         candidates = sorted({es} | {self.finish_time(j) for j in self.schedule
                                     if self.finish_time(j) > es})
         starts = [t for t in candidates if self.fits_at(job, t)]
@@ -377,15 +379,18 @@ class ProblemState:
         effective = dict(job.resources_required)
         if not isinstance(allocation, dict):
             return effective, True
+        def is_amount(x: Any) -> bool:
+            return isinstance(x, int) and not isinstance(x, bool) and x >= 0
+
         for rid, amount in allocation.items():
-            if rid not in self.renewable_used or not isinstance(amount, int) or amount < 0:
+            if rid not in self.renewable_used or not is_amount(amount):
                 violated = True
                 continue
             if amount > effective.get(rid, 0):
                 effective[rid] = amount
         for rid, need in job.resources_required.items():
             given = allocation.get(rid)
-            if not isinstance(given, int) or given < need:
+            if not is_amount(given) or given < need:
                 violated = True
         return effective, violated
 
@@ -416,13 +421,13 @@ class ProblemState:
 
     # --- снапшот для функций LLM ------------------------------------------------
 
-    def snapshot(self, scheme: str = SCHEME_SSGS) -> dict:
+    def snapshot(self, scheme: str = SCHEME_SSGS, eligible: list[int] | None = None) -> dict:
         base = {
             "scheme": scheme,
             "scheduled_jobs": list(self.schedule),
             "start_times": dict(self.schedule),
             "finish_times": {j: self.finish_time(j) for j in self.schedule},
-            "eligible_jobs": self.eligible_jobs(scheme),
+            "eligible_jobs": list(eligible) if eligible is not None else self.eligible_jobs(scheme),
             "non_renewable_stock": dict(self.non_renewable_stock),
             "skipped_jobs": list(self.skipped_jobs),
             "capacity": {rid: self.resources[rid].capacity for rid in self.renewable_ids()},
@@ -833,7 +838,7 @@ def run_schedule(
 
     def pick(eligible: list[int]) -> tuple[int, dict]:
         nonlocal invalid_select
-        snap = state.snapshot(scheme)
+        snap = state.snapshot(scheme, eligible)
         job_id = select_job_fn(list(eligible), state.jobs, snap, meta)
         if job_id not in eligible:
             invalid_select += 1

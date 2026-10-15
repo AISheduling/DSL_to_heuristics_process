@@ -128,10 +128,19 @@ def extract_schedule(result: Any) -> dict | None:
         if isinstance(inner, list):
             return _from_list(inner)
     if all(not isinstance(v, (dict, list)) for v in result.values()):
-        keys_numeric = all(isinstance(_key_of(k), int) for k in result)
-        if keys_numeric:
+        if all(_is_job_key(_key_of(k)) for k in result):
             return _from_mapping(result)
     return None
+
+
+def _is_job_key(key: Any) -> bool:
+    """int или "project:activity" (многопроектная задача)."""
+    if isinstance(key, int) and not isinstance(key, bool):
+        return True
+    if isinstance(key, str):
+        pid, sep, lid = key.partition(":")
+        return bool(sep) and pid.isdigit() and lid.isdigit()
+    return False
 
 
 # --- оценка через чекер -------------------------------------------------------
@@ -216,12 +225,25 @@ def _run_with_timeout(target, args: tuple, timeout: float) -> tuple[str, Any, An
     q: Queue = Queue()
     p = Process(target=target, args=(*args, q))
     p.start()
-    try:
-        kind, info, payload = q.get(timeout=timeout)
-    except Empty:
-        p.terminate()
-        p.join()
-        return "timeout", f"exceeded {timeout} s", None
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            kind, info, payload = q.get(timeout=0.2)
+            break
+        except Empty:
+            if not p.is_alive():
+                # Процесс умер, ничего не отправив (os._exit, MemoryError, крах интерпретатора).
+                # Очередь могла получить сообщение в последний момент — проверим ещё раз.
+                try:
+                    kind, info, payload = q.get(timeout=0.2)
+                    break
+                except Empty:
+                    p.join()
+                    return "runtime_error", f"worker process died with exit code {p.exitcode}", None
+            if time.monotonic() > deadline:
+                p.terminate()
+                p.join()
+                return "timeout", f"exceeded {timeout} s", None
     p.join()
     return kind, info, payload
 

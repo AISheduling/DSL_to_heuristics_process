@@ -120,3 +120,16 @@ def test_run_skeleton_pipeline_validates_with_checker(tmp_path):
     assert out["status"] == "ok" and out["invalid_select_count"] == 4
     out = rc.run_skeleton("x = 1", allocate, dsl, diamond(), timeout=10)
     assert out["status"] == "compile_error"
+
+
+def test_extract_schedule_accepts_top_level_project_activity_keys():
+    assert rc.extract_schedule({"1:1": 0, "2:1": 3}) == {"1:1": 0, "2:1": 3}
+    assert rc.extract_schedule({"makespan": 5}) is None
+
+
+def test_worker_that_dies_is_runtime_error_not_timeout():
+    code = "def solve_scheduling(jobs, resources):\n    import os\n    os._exit(3)\n"
+    t0 = __import__("time").perf_counter()
+    out = rc.run_full_solver(code, diamond(), timeout=20)
+    assert out["status"] == "runtime_error"
+    assert __import__("time").perf_counter() - t0 < 10

@@ -487,3 +487,65 @@ def test_real_instance_is_scheduled_completely(case):
     assert res["status"] == "complete", res.get("detail")
     assert res["unscheduled"] == []
     assert res["objective"]["primary"] is not None
+
+
+# =============================================================================
+# 9. Замечания первого ревью
+# =============================================================================
+
+def test_zero_duration_job_gets_single_feasible_start(tmp_path):
+    """Фиктивной работе (d = 0) нечего ждать: единственный кандидат — граница по
+    предшествованию; allocate_fn не может раздуть makespan, задержав сток."""
+    raw = {
+        "resources": [{"id": 1, "name": "R1", "capacity": 2, "type": "renewable"}],
+        "jobs": [
+            {"id": 1, "duration": 0, "predecessors": [], "successors": [2, 3],
+             "resources_required": {}},
+            {"id": 2, "duration": 1, "predecessors": [1], "successors": [4],
+             "resources_required": {"1": 1}},
+            {"id": 3, "duration": 4, "predecessors": [1], "successors": [],
+             "resources_required": {"1": 1}},
+            {"id": 4, "duration": 0, "predecessors": [2], "successors": [],
+             "resources_required": {}},
+        ],
+    }
+    seen = {}
+
+    def allocate(job, starts, snap, meta):
+        seen[job.id] = list(starts)
+        return starts[-1]
+
+    res = solve(dsl_tmp(tmp_path, DSL_BASE), raw, select_job_fn=select_by_id,
+                allocate_fn=allocate)
+    assert seen[4] == [1]  # а не [1, 4]: ждать окончания работы 3 фиктивной работе незачем
+    assert res["schedule"][4] == 1
+
+
+def test_nonrenewable_production_replenishes_stock():
+    raw = {
+        "resources": [{"id": 1, "name": "R1", "capacity": 2, "type": "renewable"},
+                      {"id": 2, "name": "NRR1", "initial_stock": 10, "type": "nonrenewable"}],
+        "jobs": [
+            {"id": 1, "duration": 1, "predecessors": [], "successors": [2],
+             "resources_required": {"1": 1},
+             "resource_consumption": {"2": {"consumption": 0, "production": 5}}},
+            {"id": 2, "duration": 1, "predecessors": [1], "successors": [],
+             "resources_required": {"1": 1},
+             "resource_consumption": {"2": {"consumption": 14, "production": 0}}},
+        ],
+    }
+    meta = DSLParser().parse_dict(DSL_NRR)
+    state = ProblemFactory().build(raw, meta)
+    assert state.jobs[1].non_renewable_production == {2: 5}
+    res = run_schedule(state, select_first)
+    assert res["status"] == "complete"
+    assert state.non_renewable_stock[2] == 1
+    assert res["objective"]["non_renewable_used"] == {"NRR1": 9}
+
+
+def test_bool_amount_in_legacy_allocation_is_a_violation():
+    meta = DSLParser().parse_dict(DSL_NRR)
+    state = ProblemFactory().build(nrr_instance(), meta)  # работа 1 требует {1: 1}
+    effective, violated = state.effective_allocation(state.jobs[1], {1: True})
+    assert violated is True
+    assert effective == {1: 1}

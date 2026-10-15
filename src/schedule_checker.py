@@ -312,21 +312,29 @@ def validate_schedule(instance: dict, schedule: dict | None, *, objective: str |
                                    "used": used, "capacity": res["capacity"]})
                 break  # одной точки на ресурс достаточно для вердикта
 
-    # 6. Невозобновляемые ресурсы: суммарный расход не выше запаса / бюджета
+    # 6. Невозобновляемые ресурсы: нарастающий расход (потребление минус производство
+    #    работ, начавшихся не позже t) не выше запаса / бюджета в каждый момент старта
     nrr_used: dict[str, int] = {}
     budget_violations: dict[str, dict] = {}
     for rid, res in resources.items():
         if res["renewable"]:
             continue
-        used = sum(jobs[j]["cons"].get(rid, 0) - jobs[j]["prod"].get(rid, 0) for j in starts)
         limit = res["stock"]
         if budget_limit and res["name"] in budget_limit:
             limit = min(limit, int(budget_limit[res["name"]]))
-        nrr_used[res["name"]] = used
-        if used > limit:
-            budget_violations[res["name"]] = {"used": used, "limit": limit, "excess": used - limit}
+        running = 0
+        worst: tuple[int, int] | None = None  # (used, time)
+        for jid in sorted(starts, key=lambda j: starts[j]):
+            running += jobs[jid]["cons"].get(rid, 0) - jobs[jid]["prod"].get(rid, 0)
+            if running > limit and (worst is None or running > worst[0]):
+                worst = (running, starts[jid])
+        nrr_used[res["name"]] = running
+        if worst is not None:
+            used, t = worst
+            budget_violations[res["name"]] = {"used": used, "limit": limit, "excess": used - limit,
+                                              "time": t}
             violations.append({"type": "non_renewable_budget", "resource": rid,
-                               "name": res["name"], "used": used, "limit": limit})
+                               "name": res["name"], "used": used, "limit": limit, "time": t})
 
     # 7. Статус и цель
     if any(v["type"] != "missing_job" for v in violations):

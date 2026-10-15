@@ -179,3 +179,24 @@ def test_selection_group_alternatives_are_not_counted_as_missing():
     assert rep["skipped"] == [3]
     both = validate_schedule(inst, {1: 0, 2: 0, 3: 0, 4: 2})
     assert "selection_group" in violation_types(both)
+
+
+def test_nonrenewable_stock_is_checked_chronologically():
+    """Расход раньше производства: итог 7 <= 10, но в t=0 запас уходит в минус."""
+    inst = {
+        "resources": [{"id": 1, "name": "R1", "capacity": 2, "type": "renewable"},
+                      {"id": 2, "name": "NRR1", "initial_stock": 10, "type": "nonrenewable"}],
+        "jobs": [
+            {"id": 1, "duration": 1, "predecessors": [], "resources_required": {"1": 1},
+             "resource_consumption": {"2": {"consumption": 12, "production": 0}}},
+            {"id": 2, "duration": 1, "predecessors": [], "resources_required": {"1": 1},
+             "resource_consumption": {"2": {"consumption": 0, "production": 5}}},
+        ],
+    }
+    early_consume = validate_schedule(inst, {1: 0, 2: 5})
+    assert early_consume["status"] == "invalid"
+    v = [x for x in early_consume["violations"] if x["type"] == "non_renewable_budget"]
+    assert v and v[0]["time"] == 0 and v[0]["used"] == 12
+    produce_first = validate_schedule(inst, {2: 0, 1: 5})
+    assert produce_first["status"] == "valid"
+    assert produce_first["objective"]["non_renewable_used"] == {"NRR1": 7}
