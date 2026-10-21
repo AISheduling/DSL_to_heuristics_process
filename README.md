@@ -27,14 +27,18 @@ DSL_to_heuristics_process/
 │   ├── app.py                        # Streamlit-приложение (UI)
 │   ├── scheduler_skeleton.py         # Каркас решателя (SSGS + legacy)
 │   ├── schedule_checker.py           # Независимый чекер расписаний (не импортирует каркас)
-│   ├── calculate_metrics.py          # Вычисление метрик графов
+│   ├── calculate_metrics.py          # Метрики графов весенних DSL (legacy, см. ADR 0002)
+│   ├── indicators.py                 # 12 стандартных индикаторов проекта (guo2021) + доп. признаки
+│   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed
 │   └── llm_clients/                  # Скрипты генерации эвристик через LLM
 ├── data/
 │   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
 │   ├── processed/                    # Готовые инстансы задач (JSON)
+│   ├── psplib/                       # PSPLIB J30/J60/J120 (не в git, см. SOURCES.md)
+│   ├── rcplib/                       # Индикаторы RCPLIB (не в git, см. SOURCES.md)
 │   └── references/                   # DSL и текстовые описания кейсов
 ├── docs/
-│   ├── adr/                          # Архитектурные решения (ADR 0001 — статусы, чекер, контракт allocate_fn)
+│   ├── adr/                          # Архитектурные решения (0001 — статусы, чекер, allocate_fn; 0002 — индикаторы)
 │   ├── literature-review/            # Обзор литературы (этап 0)
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
@@ -43,6 +47,8 @@ DSL_to_heuristics_process/
 │   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
 │   ├── test_checker.py               # Сломанные и корректные расписания через чекер
 │   ├── test_runner_common.py         # Статусы, извлечение расписания, таймаут
+│   ├── test_psplib.py                # Парсер .sm: j301_1 = Case 1, отказ на чужих форматах
+│   ├── test_indicators.py            # Индикаторы: ручные примеры, инварианты, диапазоны guo2021
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
 ├── pytest.ini
 ├── requirements-dev.txt
@@ -402,6 +408,10 @@ python -m pytest
 4. `tests/test_skeleton_cases.py` — парсер, фабрика, состояние, цель, `solve()` в обеих схемах
    на синтетических инстансах и на `data/processed/` с перепроверкой чекером; для Cases 3–4
    закреплён честный статус `incomplete`.
+5. `tests/test_psplib.py` — парсер `.sm`: `j301_1` даёт в точности `Case1_PSPLIB_j301_1.json`.
+6. `tests/test_indicators.py` — индикаторы на сетях, посчитанных вручную, инварианты
+   (фиктивные работы, перенумерация) и min/max по J30/J60/J120 против табл. 3–4 guo2021.
+   Сверка с диапазонами пропускается, если PSPLIB не скачан.
 
 ---
 
@@ -489,6 +499,25 @@ python experiments/runners/run_heuristics_skeleton.py [--scheme ssgs|legacy]
 
 Для Skeleton в строку дополнительно пишутся `kernel_status`, `reason`,
 `invalid_select_count`, `allocate_violations`, `scheme`.
+
+## Данные PSPLIB и индикаторы проекта
+
+PSPLIB J30 — отладка и настройка, J60/J120 — финальный тест. Архивы, решения и
+контрольные суммы описаны в `data/psplib/SOURCES.md`; распакованные инстансы лежат в
+`data/psplib/instances/<набор>/`. Формулы индикаторов и результаты сверки — в
+`docs/adr/0002-project-indicators.md`.
+
+```bash
+# индикаторы набора в CSV (каталог .sm или .json формата data/processed)
+python src/indicators.py data/psplib/instances/j30 j30_indicators.csv
+```
+
+```python
+from psplib import parse_sm_file
+from indicators import compute_indicators
+inst = parse_sm_file("data/psplib/instances/j30/j301_1.sm")
+compute_indicators(inst)  # {"standard", "network", "resource", "extended"}
+```
 
 ## Версии каркаса и данных
 
