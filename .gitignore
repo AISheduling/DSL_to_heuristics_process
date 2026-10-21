@@ -1,7 +1,12 @@
 venv/
 .env
 *.env 
-src/.idea/
+.idea/
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 __pycache__/
+
+data/psplib/*
+!data/psplib/SOURCES.md
+data/rcplib/*
+!data/rcplib/SOURCES.md

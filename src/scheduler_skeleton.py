@@ -60,9 +60,7 @@ class SchedulerContractError(RuntimeError):
     """Нарушение контракта select_job_fn / allocate_fn (только при strict=True)."""
 
 
-# =============================================================================
 # DSL PARSER
-# =============================================================================
 
 @dataclass
 class DSLMeta:
@@ -183,9 +181,7 @@ class DSLParser:
         return "\n".join(lines)
 
 
-# =============================================================================
-# МОДЕЛЬ ЗАДАЧИ
-# =============================================================================
+# Модель задачи
 
 @dataclass
 class Job:
@@ -253,7 +249,7 @@ class ProblemState:
             else:
                 self.non_renewable_stock[r.id] = r.initial_stock
 
-    # --- общие запросы ---------------------------------------------------------
+    # Общие запросы
 
     def renewable_ids(self) -> list[int]:
         return [r.id for r in self.resources.values() if r.r_type == RENEWABLE]
@@ -307,7 +303,7 @@ class ProblemState:
                         self.skipped_jobs.add(alt)
                         log(f"    -> skip job {alt} (alternative of {job_id} in group of {parent_id})")
 
-    # --- SSGS: профиль ресурсов ------------------------------------------------
+    # SSGS: профиль ресурсов
 
     def usage_at(self, resource_id: int, t: int) -> int:
         return self.profile[resource_id].get(t, 0)
@@ -325,10 +321,12 @@ class ProblemState:
         return max((self.finish_time(p) for p in job.predecessors), default=0)
 
     def feasible_starts(self, job: Job, limit: int = 10) -> list[int]:
-        """Допустимые времена старта: по предшествованию и профилю ресурсов на
+        """
+        Допустимые времена старта: по предшествованию и профилю ресурсов на
         всём интервале [t, t + d). Кандидаты — самое раннее время и моменты
         окончания уже запланированных работ; возвращаются первые `limit`
-        подходящих. Пусто только если потребность превышает мощность."""
+        подходящих. Пусто только если потребность превышает мощность.
+        """
         for rid, amount in job.resources_required.items():
             if amount > self.resources[rid].capacity:
                 return []
@@ -352,7 +350,7 @@ class ProblemState:
         self._consume_non_renewable(job)
         self._apply_selection_groups(job_id, log)
 
-    # --- Legacy: пошаговая схема ------------------------------------------------
+    # Legacy: пошаговая схема
 
     def available_capacity(self, resource_id: int) -> int:
         r = self.resources[resource_id]
@@ -419,7 +417,7 @@ class ProblemState:
             self.current_time = next_finish
             self.finish_jobs_at(next_finish)
 
-    # --- снапшот для функций LLM ------------------------------------------------
+    # Снапшот для функций LLM
 
     def snapshot(self, scheme: str = SCHEME_SSGS, eligible: list[int] | None = None) -> dict:
         base = {
@@ -444,13 +442,13 @@ class ProblemState:
         return base
 
 
-# =============================================================================
-# РАСЧЁТ ЦЕЛИ
-# =============================================================================
+# Расчет цели
 
 class ObjectiveCalculator:
-    """Считает цель по расписанию в state. Вызывать только для полного расписания:
-    по частичному значения занижены (run_schedule в этом случае отдаёт primary=None)."""
+    """
+    Считает цель по расписанию в state. Вызывать только для полного расписания:
+    по частичному значения занижены (run_schedule в этом случае отдаёт primary=None).
+    """
 
     @staticmethod
     def compute(state: ProblemState) -> dict[str, Any]:
@@ -519,9 +517,7 @@ class ObjectiveCalculator:
         return result
 
 
-# =============================================================================
-# ФОРМИРОВАНИЕ СОСТОЯНИЯ ИЗ ДАННЫХ
-# =============================================================================
+# Формирование состояния из данных
 
 class ProblemFactory:
     """
@@ -544,7 +540,7 @@ class ProblemFactory:
         self._link_precedence(jobs)
         return ProblemState(jobs=jobs, resources=resources, meta=meta)
 
-    # --- ресурсы ---
+    # Ресурсы
 
     @staticmethod
     def _parse_resources(raw: list[dict]) -> dict[int, Resource]:
@@ -652,7 +648,7 @@ class ProblemFactory:
             raise InstanceFormatError(f"{where}: invalid duration {dur!r}")
         return int(dur)
 
-    # --- работы: стандартный формат ---
+    # Работы: стандартный формат
 
     def _parse_jobs(self, raw: list[dict], resources: dict[int, Resource]) -> dict[int, Job]:
         result: dict[int, Job] = {}
@@ -694,7 +690,7 @@ class ProblemFactory:
             )
         return result
 
-    # --- работы: многопроектный формат (Case 5) ---
+    # Работы: многопроектный формат (Case 5)
 
     def _parse_multi_project(self, raw: list[dict], resources: dict[int, Resource]) -> dict[int, Job]:
         projects: list[tuple[int, list[dict]]] = []
@@ -733,7 +729,7 @@ class ProblemFactory:
                 )
         return result
 
-    # --- предшествование ---
+    # Предшествование
 
     @staticmethod
     def _link_precedence(jobs: dict[int, Job]):
@@ -760,9 +756,7 @@ class ProblemFactory:
                     jobs[p].successors.append(job.id)
 
 
-# =============================================================================
-# ПУБЛИЧНЫЙ API
-# =============================================================================
+# Публичный API
 
 def build_state(dsl_path: str | Path, instance_data: dict) -> tuple[DSLMeta, ProblemState]:
     """Шаг 1+2: парсит DSL и строит начальное состояние задачи."""

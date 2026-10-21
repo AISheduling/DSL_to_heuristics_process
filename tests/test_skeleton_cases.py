@@ -187,7 +187,7 @@ def load_json(path: Path) -> dict:
         return json.load(f)
 
 
-# 1. DSLParser ----------------------------------------------------------------
+# DSLParser
 
 def test_parser_case1(parser):
     m = parser.parse_dict(DSL[1])
@@ -230,7 +230,7 @@ def test_real_dsl_files_parse(parser, case):
         assert parser.parse_file(d).project_id != "UNKNOWN", d
 
 
-# 2. ProblemFactory -------------------------------------------------------------
+# ProblemFactory
 
 def test_factory_case1_structure(parser, factory):
     s = factory.build(INSTANCE[1], parser.parse_dict(DSL[1]))
@@ -270,7 +270,7 @@ def test_factory_case5_multi_project(parser, factory):
                           if j.project_id == 2 and j.local_id == 2).predecessors
 
 
-# 3. ProblemState ---------------------------------------------------------------
+# ProblemState
 
 def test_state_legacy_mechanics(parser, factory):
     s = factory.build(INSTANCE[1], parser.parse_dict(DSL[1]))
@@ -305,7 +305,7 @@ def test_state_ssgs_feasible_starts_and_profile(parser, factory):
         assert key in snap
 
 
-# 4. ObjectiveCalculator ----------------------------------------------------------
+# ObjectiveCalculator
 
 def test_objective_makespan(parser, factory):
     s = factory.build(INSTANCE[1], parser.parse_dict(DSL[1]))
@@ -343,7 +343,7 @@ def test_objective_multi_project_sum(parser, factory):
     assert obj["primary"] == 7 and obj["portfolio_makespan"] == 4
 
 
-# 5. solve() на синтетических инстансах -----------------------------------------------
+# solve() на синтетических инстансах
 
 @pytest.mark.parametrize("scheme", ["ssgs", "legacy"])
 @pytest.mark.parametrize("case", [1, 2, 3, 5])
@@ -383,7 +383,7 @@ def test_solve_case4_branch_choice_leads_to_honest_deadlock(dsl_file, scheme):
     assert res["objective"]["primary"] is None
 
 
-# 6. Реальные инстансы -------------------------------------------------------------
+# Реальные инстансы
 
 @pytest.mark.parametrize("scheme", ["ssgs", "legacy"])
 @pytest.mark.parametrize("case", [1, 2, 5])

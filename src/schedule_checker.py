@@ -39,7 +39,7 @@ class InstanceError(ValueError):
     """Инстанс нельзя разобрать: сообщение называет поле."""
 
 
-# --- разбор инстанса (своя реализация, без каркаса) ---------------------------
+# Разбор инстанса (своя реализация, без каркаса)
 
 def _multi_project_id_base(max_local_id: int) -> int:
     return 10 ** len(str(max(max_local_id, 1)))
@@ -179,7 +179,7 @@ def parse_instance(instance: dict) -> dict[str, Any]:
             "id_base": id_base, "due_date": due_date}
 
 
-# --- нормализация ключей расписания --------------------------------------------
+# Нормализация ключей расписания
 
 def _normalize_key(key: Any, parsed: dict) -> int | None:
     jobs = parsed["jobs"]
@@ -210,7 +210,7 @@ def _normalize_key(key: Any, parsed: dict) -> int | None:
     return None
 
 
-# --- проверка -----------------------------------------------------------------
+# Проверка
 
 def validate_schedule(instance: dict, schedule: dict | None, *, objective: str | None = None,
                       due_date: int | None = None,
@@ -247,7 +247,7 @@ def validate_schedule(instance: dict, schedule: dict | None, *, objective: str |
     if not schedule:
         return report
 
-    # 1. Ключи и значения
+    # Ключи и значения
     starts: dict[int, int] = {}
     for key, value in schedule.items():
         gid = _normalize_key(key, parsed)
@@ -267,8 +267,8 @@ def validate_schedule(instance: dict, schedule: dict | None, *, objective: str |
     def finish(jid: int) -> int:
         return starts[jid] + jobs[jid]["duration"]
 
-    # 2. Группы выбора: из группы запланированного родителя выбрана ровно одна
-    #    альтернатива; остальные — законно пропущены.
+    # Группы выбора: из группы запланированного родителя выбрана ровно одна
+    # альтернатива; остальные — законно пропущены.
     skipped: set[int] = set()
     for jid in starts:
         for group in jobs[jid]["groups"]:
@@ -283,19 +283,19 @@ def validate_schedule(instance: dict, schedule: dict | None, *, objective: str |
                                    "detail": f"several alternatives scheduled: {chosen}"})
     report["skipped"] = sorted(skipped)
 
-    # 3. Полнота
+    # Полнота
     missing = [jid for jid in jobs if jid not in starts and jid not in skipped]
     for jid in missing:
         violations.append({"type": "missing_job", "job": jid})
 
-    # 4. Предшествование (finish-to-start) среди запланированных работ
+    # Предшествование (finish-to-start) среди запланированных работ
     for jid, start in starts.items():
         for p in jobs[jid]["preds"]:
             if p in starts and finish(p) > start:
                 violations.append({"type": "precedence", "job": jid, "predecessor": p,
                                    "start": start, "predecessor_finish": finish(p)})
 
-    # 5. Возобновляемые ресурсы: загрузка в каждый такт
+    # Возобновляемые ресурсы: загрузка в каждый такт
     horizon = max((finish(j) for j in starts), default=0)
     for rid, res in resources.items():
         if not res["renewable"]:
@@ -312,8 +312,8 @@ def validate_schedule(instance: dict, schedule: dict | None, *, objective: str |
                                    "used": used, "capacity": res["capacity"]})
                 break  # одной точки на ресурс достаточно для вердикта
 
-    # 6. Невозобновляемые ресурсы: нарастающий расход (потребление минус производство
-    #    работ, начавшихся не позже t) не выше запаса / бюджета в каждый момент старта
+    # Невозобновляемые ресурсы: нарастающий расход (потребление минус производство
+    # работ, начавшихся не позже t) не выше запаса / бюджета в каждый момент старта
     nrr_used: dict[str, int] = {}
     budget_violations: dict[str, dict] = {}
     for rid, res in resources.items():
