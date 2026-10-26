@@ -1,0 +1,3034 @@
+{
+  "created": "2026-10-26",
+  "seed": 2026,
+  "rule": "по одному инстансу на каждую комбинацию параметров ProGen (j60: 48, j120: 60); пилот — 15 случайных инстансов выборки из каждого набора",
+  "reference_sources": "PSPLIB solutions + RCPLIB v6",
+  "size": 108,
+  "pilot_size": 30,
+  "instances": [
+    {
+      "name": "j601_2",
+      "set": "j60",
+      "param": 1,
+      "instance": 2,
+      "pilot": false,
+      "reference": {
+        "cpm": 65,
+        "lb": 68,
+        "bks": 68,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2588,
+        "sp": 0.1864,
+        "ad": 0.2955,
+        "la": 0.0035,
+        "i5": 0.71,
+        "tf": 0.2879,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.2036,
+        "rc": 0.4078
+      }
+    },
+    {
+      "name": "j602_6",
+      "set": "j60",
+      "param": 2,
+      "instance": 6,
+      "pilot": false,
+      "reference": {
+        "cpm": 61,
+        "lb": 64,
+        "bks": 64,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2266,
+        "sp": 0.1525,
+        "ad": 0.3333,
+        "la": 0.0127,
+        "i5": 0.7875,
+        "tf": 0.26,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.5046,
+        "rc": 0.322
+      }
+    },
+    {
+      "name": "j603_9",
+      "set": "j60",
+      "param": 3,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 63,
+        "lb": 67,
+        "bks": 67,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2729,
+        "sp": 0.1525,
+        "ad": 0.3556,
+        "la": 0.0128,
+        "i5": 0.8208,
+        "tf": 0.1267,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.6967,
+        "rc": 0.2427
+      }
+    },
+    {
+      "name": "j604_9",
+      "set": "j60",
+      "param": 4,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 75,
+        "lb": 75,
+        "bks": 75,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2441,
+        "sp": 0.1695,
+        "ad": 0.3082,
+        "la": 0.0182,
+        "i5": 0.7593,
+        "tf": 0.2714,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 1.0,
+        "rc": 0.2314
+      }
+    },
+    {
+      "name": "j605_2",
+      "set": "j60",
+      "param": 5,
+      "instance": 2,
+      "pilot": false,
+      "reference": {
+        "cpm": 76,
+        "lb": 106,
+        "bks": 106,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2819,
+        "sp": 0.2203,
+        "ad": 0.3946,
+        "la": 0.017,
+        "i5": 0.7639,
+        "tf": 0.4147,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.2051,
+        "rc": 0.3775
+      }
+    },
+    {
+      "name": "j606_4",
+      "set": "j60",
+      "param": 6,
+      "instance": 4,
+      "pilot": true,
+      "reference": {
+        "cpm": 67,
+        "lb": 67,
+        "bks": 67,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.252,
+        "sp": 0.1695,
+        "ad": 0.3878,
+        "la": 0.0189,
+        "i5": 0.7667,
+        "tf": 0.2653,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.509,
+        "rc": 0.21
+      }
+    },
+    {
+      "name": "j607_10",
+      "set": "j60",
+      "param": 7,
+      "instance": 10,
+      "pilot": false,
+      "reference": {
+        "cpm": 82,
+        "lb": 82,
+        "bks": 82,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2723,
+        "sp": 0.1864,
+        "ad": 0.3409,
+        "la": 0.019,
+        "i5": 0.7067,
+        "tf": 0.3125,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.6946,
+        "rc": 0.1721
+      }
+    },
+    {
+      "name": "j608_10",
+      "set": "j60",
+      "param": 8,
+      "instance": 10,
+      "pilot": true,
+      "reference": {
+        "cpm": 97,
+        "lb": 97,
+        "bks": 97,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.296,
+        "sp": 0.2203,
+        "ad": 0.2809,
+        "la": 0.0,
+        "i5": 0.7083,
+        "tf": 0.2809,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 1.0,
+        "rc": 0.1422
+      }
+    },
+    {
+      "name": "j609_9",
+      "set": "j60",
+      "param": 9,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 80,
+        "lb": 99,
+        "bks": 99,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.278,
+        "sp": 0.2034,
+        "ad": 0.4504,
+        "la": 0.0031,
+        "i5": 0.6212,
+        "tf": 0.3493,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.2059,
+        "rc": 0.2735
+      }
+    },
+    {
+      "name": "j6010_7",
+      "set": "j60",
+      "param": 10,
+      "instance": 7,
+      "pilot": false,
+      "reference": {
+        "cpm": 69,
+        "lb": 69,
+        "bks": 69,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2503,
+        "sp": 0.1695,
+        "ad": 0.398,
+        "la": 0.0133,
+        "i5": 0.7741,
+        "tf": 0.3143,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.5057,
+        "rc": 0.1692
+      }
+    },
+    {
+      "name": "j6011_10",
+      "set": "j60",
+      "param": 11,
+      "instance": 10,
+      "pilot": false,
+      "reference": {
+        "cpm": 58,
+        "lb": 58,
+        "bks": 58,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2203,
+        "sp": 0.1186,
+        "ad": 0.2527,
+        "la": 0.0225,
+        "i5": 0.7556,
+        "tf": 0.0824,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.6946,
+        "rc": 0.1268
+      }
+    },
+    {
+      "name": "j6012_9",
+      "set": "j60",
+      "param": 12,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 59,
+        "lb": 59,
+        "bks": 59,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2508,
+        "sp": 0.1695,
+        "ad": 0.4204,
+        "la": 0.0155,
+        "i5": 0.763,
+        "tf": 0.2714,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 1.0,
+        "rc": 0.0988
+      }
+    },
+    {
+      "name": "j6013_8",
+      "set": "j60",
+      "param": 13,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 69,
+        "lb": 116,
+        "bks": 120,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2588,
+        "sp": 0.1864,
+        "ad": 0.3182,
+        "la": 0.0034,
+        "i5": 0.7033,
+        "tf": 0.3295,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.1999,
+        "rc": 0.2812
+      }
+    },
+    {
+      "name": "j6014_10",
+      "set": "j60",
+      "param": 14,
+      "instance": 10,
+      "pilot": false,
+      "reference": {
+        "cpm": 67,
+        "lb": 72,
+        "bks": 72,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.3006,
+        "sp": 0.1864,
+        "ad": 0.2955,
+        "la": 0.0069,
+        "i5": 0.7767,
+        "tf": 0.233,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.5084,
+        "rc": 0.1553
+      }
+    },
+    {
+      "name": "j6015_8",
+      "set": "j60",
+      "param": 15,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 79,
+        "lb": 79,
+        "bks": 79,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2582,
+        "sp": 0.2203,
+        "ad": 0.3813,
+        "la": 0.0109,
+        "i5": 0.7028,
+        "tf": 0.4064,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.6988,
+        "rc": 0.1166
+      }
+    },
+    {
+      "name": "j6016_4",
+      "set": "j60",
+      "param": 16,
+      "instance": 4,
+      "pilot": false,
+      "reference": {
+        "cpm": 60,
+        "lb": 60,
+        "bks": 60,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.45,
+        "os": 0.2655,
+        "sp": 0.2034,
+        "ad": 0.3528,
+        "la": 0.0151,
+        "i5": 0.7545,
+        "tf": 0.3245,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 1.0,
+        "rc": 0.081
+      }
+    },
+    {
+      "name": "j6017_1",
+      "set": "j60",
+      "param": 17,
+      "instance": 1,
+      "pilot": true,
+      "reference": {
+        "cpm": 76,
+        "lb": 86,
+        "bks": 86,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3684,
+        "sp": 0.1864,
+        "ad": 0.2955,
+        "la": 0.0239,
+        "i5": 0.7653,
+        "tf": 0.1951,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.1407,
+        "rc": 0.4673
+      }
+    },
+    {
+      "name": "j6018_10",
+      "set": "j60",
+      "param": 18,
+      "instance": 10,
+      "pilot": false,
+      "reference": {
+        "cpm": 97,
+        "lb": 97,
+        "bks": 97,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3898,
+        "sp": 0.2034,
+        "ad": 0.3209,
+        "la": 0.0226,
+        "i5": 0.7737,
+        "tf": 0.2394,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.5,
+        "rc": 0.3312
+      }
+    },
+    {
+      "name": "j6019_2",
+      "set": "j60",
+      "param": 19,
+      "instance": 2,
+      "pilot": false,
+      "reference": {
+        "cpm": 83,
+        "lb": 83,
+        "bks": 83,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3712,
+        "sp": 0.1864,
+        "ad": 0.2045,
+        "la": 0.0194,
+        "i5": 0.7469,
+        "tf": 0.2064,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.7122,
+        "rc": 0.3135
+      }
+    },
+    {
+      "name": "j6020_2",
+      "set": "j60",
+      "param": 20,
+      "instance": 2,
+      "pilot": false,
+      "reference": {
+        "cpm": 78,
+        "lb": 78,
+        "bks": 78,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3972,
+        "sp": 0.2373,
+        "ad": 0.3095,
+        "la": 0.0044,
+        "i5": 0.7614,
+        "tf": 0.2683,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 1.0,
+        "rc": 0.3207
+      }
+    },
+    {
+      "name": "j6021_5",
+      "set": "j60",
+      "param": 21,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 75,
+        "lb": 89,
+        "bks": 89,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.361,
+        "sp": 0.2034,
+        "ad": 0.422,
+        "la": 0.0246,
+        "i5": 0.7996,
+        "tf": 0.2748,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.1981,
+        "rc": 0.329
+      }
+    },
+    {
+      "name": "j6022_2",
+      "set": "j60",
+      "param": 22,
+      "instance": 2,
+      "pilot": false,
+      "reference": {
+        "cpm": 83,
+        "lb": 83,
+        "bks": 83,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3661,
+        "sp": 0.2034,
+        "ad": 0.367,
+        "la": 0.0262,
+        "i5": 0.7495,
+        "tf": 0.2589,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.5057,
+        "rc": 0.2225
+      }
+    },
+    {
+      "name": "j6023_8",
+      "set": "j60",
+      "param": 23,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 72,
+        "lb": 72,
+        "bks": 72,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3808,
+        "sp": 0.1695,
+        "ad": 0.2755,
+        "la": 0.0288,
+        "i5": 0.7914,
+        "tf": 0.1776,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.711,
+        "rc": 0.2015
+      }
+    },
+    {
+      "name": "j6024_1",
+      "set": "j60",
+      "param": 24,
+      "instance": 1,
+      "pilot": false,
+      "reference": {
+        "cpm": 65,
+        "lb": 65,
+        "bks": 65,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3695,
+        "sp": 0.1864,
+        "ad": 0.2045,
+        "la": 0.0463,
+        "i5": 0.7816,
+        "tf": 0.2159,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 1.0,
+        "rc": 0.1852
+      }
+    },
+    {
+      "name": "j6025_8",
+      "set": "j60",
+      "param": 25,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 57,
+        "lb": 99,
+        "bks": 99,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3147,
+        "sp": 0.1695,
+        "ad": 0.3531,
+        "la": 0.0371,
+        "i5": 0.7823,
+        "tf": 0.202,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.2061,
+        "rc": 0.3
+      }
+    },
+    {
+      "name": "j6026_6",
+      "set": "j60",
+      "param": 26,
+      "instance": 6,
+      "pilot": true,
+      "reference": {
+        "cpm": 73,
+        "lb": 74,
+        "bks": 74,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3277,
+        "sp": 0.1695,
+        "ad": 0.2633,
+        "la": 0.0202,
+        "i5": 0.7551,
+        "tf": 0.2286,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.5094,
+        "rc": 0.1943
+      }
+    },
+    {
+      "name": "j6027_4",
+      "set": "j60",
+      "param": 27,
+      "instance": 4,
+      "pilot": true,
+      "reference": {
+        "cpm": 60,
+        "lb": 60,
+        "bks": 60,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3452,
+        "sp": 0.1525,
+        "ad": 0.2667,
+        "la": 0.0292,
+        "i5": 0.7908,
+        "tf": 0.1044,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.7024,
+        "rc": 0.1372
+      }
+    },
+    {
+      "name": "j6028_7",
+      "set": "j60",
+      "param": 28,
+      "instance": 7,
+      "pilot": true,
+      "reference": {
+        "cpm": 75,
+        "lb": 75,
+        "bks": 75,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3763,
+        "sp": 0.2034,
+        "ad": 0.3298,
+        "la": 0.0177,
+        "i5": 0.7699,
+        "tf": 0.2535,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 1.0,
+        "rc": 0.0903
+      }
+    },
+    {
+      "name": "j6029_5",
+      "set": "j60",
+      "param": 29,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 77,
+        "lb": 109,
+        "bks": 110,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3746,
+        "sp": 0.1864,
+        "ad": 0.3864,
+        "la": 0.027,
+        "i5": 0.8143,
+        "tf": 0.2216,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.1969,
+        "rc": 0.2756
+      }
+    },
+    {
+      "name": "j6030_6",
+      "set": "j60",
+      "param": 30,
+      "instance": 6,
+      "pilot": false,
+      "reference": {
+        "cpm": 68,
+        "lb": 68,
+        "bks": 68,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3435,
+        "sp": 0.1864,
+        "ad": 0.3182,
+        "la": 0.0126,
+        "i5": 0.7796,
+        "tf": 0.2292,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.5018,
+        "rc": 0.1484
+      }
+    },
+    {
+      "name": "j6031_6",
+      "set": "j60",
+      "param": 31,
+      "instance": 6,
+      "pilot": false,
+      "reference": {
+        "cpm": 72,
+        "lb": 72,
+        "bks": 72,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3435,
+        "sp": 0.1525,
+        "ad": 0.2667,
+        "la": 0.0308,
+        "i5": 0.8061,
+        "tf": 0.1244,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.6996,
+        "rc": 0.1162
+      }
+    },
+    {
+      "name": "j6032_7",
+      "set": "j60",
+      "param": 32,
+      "instance": 7,
+      "pilot": true,
+      "reference": {
+        "cpm": 76,
+        "lb": 76,
+        "bks": 76,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 1.7667,
+        "os": 0.3672,
+        "sp": 0.2034,
+        "ad": 0.2784,
+        "la": 0.023,
+        "i5": 0.7532,
+        "tf": 0.2287,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 1.0,
+        "rc": 0.1084
+      }
+    },
+    {
+      "name": "j6033_9",
+      "set": "j60",
+      "param": 33,
+      "instance": 9,
+      "pilot": true,
+      "reference": {
+        "cpm": 102,
+        "lb": 108,
+        "bks": 108,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4667,
+        "sp": 0.2034,
+        "ad": 0.2926,
+        "la": 0.03,
+        "i5": 0.7901,
+        "tf": 0.2092,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.2238,
+        "rc": 0.4526
+      }
+    },
+    {
+      "name": "j6034_2",
+      "set": "j60",
+      "param": 34,
+      "instance": 2,
+      "pilot": true,
+      "reference": {
+        "cpm": 65,
+        "lb": 68,
+        "bks": 68,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4441,
+        "sp": 0.1864,
+        "ad": 0.3409,
+        "la": 0.037,
+        "i5": 0.7985,
+        "tf": 0.1591,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.5197,
+        "rc": 0.3458
+      }
+    },
+    {
+      "name": "j6035_6",
+      "set": "j60",
+      "param": 35,
+      "instance": 6,
+      "pilot": false,
+      "reference": {
+        "cpm": 79,
+        "lb": 79,
+        "bks": 79,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4695,
+        "sp": 0.1864,
+        "ad": 0.2727,
+        "la": 0.0545,
+        "i5": 0.8147,
+        "tf": 0.1307,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.7219,
+        "rc": 0.3361
+      }
+    },
+    {
+      "name": "j6036_2",
+      "set": "j60",
+      "param": 36,
+      "instance": 2,
+      "pilot": true,
+      "reference": {
+        "cpm": 75,
+        "lb": 75,
+        "bks": 75,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4955,
+        "sp": 0.1864,
+        "ad": 0.2045,
+        "la": 0.0575,
+        "i5": 0.8206,
+        "tf": 0.1439,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 1.0,
+        "rc": 0.2941
+      }
+    },
+    {
+      "name": "j6037_9",
+      "set": "j60",
+      "param": 37,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 77,
+        "lb": 96,
+        "bks": 96,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.461,
+        "sp": 0.2203,
+        "ad": 0.2809,
+        "la": 0.0345,
+        "i5": 0.7953,
+        "tf": 0.2425,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.1859,
+        "rc": 0.3715
+      }
+    },
+    {
+      "name": "j6038_9",
+      "set": "j60",
+      "param": 38,
+      "instance": 9,
+      "pilot": true,
+      "reference": {
+        "cpm": 66,
+        "lb": 66,
+        "bks": 66,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4599,
+        "sp": 0.2034,
+        "ad": 0.3528,
+        "la": 0.0338,
+        "i5": 0.8289,
+        "tf": 0.1915,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.5101,
+        "rc": 0.2491
+      }
+    },
+    {
+      "name": "j6039_5",
+      "set": "j60",
+      "param": 39,
+      "instance": 5,
+      "pilot": true,
+      "reference": {
+        "cpm": 73,
+        "lb": 73,
+        "bks": 73,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4345,
+        "sp": 0.1864,
+        "ad": 0.2045,
+        "la": 0.0564,
+        "i5": 0.7691,
+        "tf": 0.1572,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 0.7118,
+        "rc": 0.224
+      }
+    },
+    {
+      "name": "j6040_5",
+      "set": "j60",
+      "param": 40,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 83,
+        "lb": 83,
+        "bks": 83,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4831,
+        "sp": 0.2034,
+        "ad": 0.2323,
+        "la": 0.016,
+        "i5": 0.7767,
+        "tf": 0.1613,
+        "rf": 0.5042,
+        "ru": 2.0167,
+        "rs": 1.0,
+        "rc": 0.1873
+      }
+    },
+    {
+      "name": "j6041_8",
+      "set": "j60",
+      "param": 41,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 95,
+        "lb": 135,
+        "bks": 135,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.465,
+        "sp": 0.2034,
+        "ad": 0.2145,
+        "la": 0.0474,
+        "i5": 0.7754,
+        "tf": 0.2199,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.1869,
+        "rc": 0.3392
+      }
+    },
+    {
+      "name": "j6042_3",
+      "set": "j60",
+      "param": 42,
+      "instance": 3,
+      "pilot": false,
+      "reference": {
+        "cpm": 73,
+        "lb": 78,
+        "bks": 78,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4503,
+        "sp": 0.1695,
+        "ad": 0.2633,
+        "la": 0.0447,
+        "i5": 0.8382,
+        "tf": 0.149,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.5093,
+        "rc": 0.2297
+      }
+    },
+    {
+      "name": "j6043_10",
+      "set": "j60",
+      "param": 43,
+      "instance": 10,
+      "pilot": true,
+      "reference": {
+        "cpm": 78,
+        "lb": 78,
+        "bks": 78,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4362,
+        "sp": 0.2373,
+        "ad": 0.2619,
+        "la": 0.0314,
+        "i5": 0.7647,
+        "tf": 0.3365,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 0.7052,
+        "rc": 0.1655
+      }
+    },
+    {
+      "name": "j6044_5",
+      "set": "j60",
+      "param": 44,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 74,
+        "lb": 74,
+        "bks": 74,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.491,
+        "sp": 0.2034,
+        "ad": 0.2323,
+        "la": 0.0383,
+        "i5": 0.7848,
+        "tf": 0.195,
+        "rf": 0.7542,
+        "ru": 3.0167,
+        "rs": 1.0,
+        "rc": 0.1509
+      }
+    },
+    {
+      "name": "j6045_1",
+      "set": "j60",
+      "param": 45,
+      "instance": 1,
+      "pilot": false,
+      "reference": {
+        "cpm": 71,
+        "lb": 96,
+        "bks": 96,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4282,
+        "sp": 0.1864,
+        "ad": 0.2727,
+        "la": 0.0385,
+        "i5": 0.7853,
+        "tf": 0.2102,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.204,
+        "rc": 0.2601
+      }
+    },
+    {
+      "name": "j6046_6",
+      "set": "j60",
+      "param": 46,
+      "instance": 6,
+      "pilot": true,
+      "reference": {
+        "cpm": 87,
+        "lb": 90,
+        "bks": 90,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4972,
+        "sp": 0.2373,
+        "ad": 0.2857,
+        "la": 0.0278,
+        "i5": 0.7919,
+        "tf": 0.2016,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.5127,
+        "rc": 0.2157
+      }
+    },
+    {
+      "name": "j6047_6",
+      "set": "j60",
+      "param": 47,
+      "instance": 6,
+      "pilot": false,
+      "reference": {
+        "cpm": 76,
+        "lb": 76,
+        "bks": 76,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4486,
+        "sp": 0.2034,
+        "ad": 0.2376,
+        "la": 0.038,
+        "i5": 0.7767,
+        "tf": 0.2323,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.7078,
+        "rc": 0.1419
+      }
+    },
+    {
+      "name": "j6048_8",
+      "set": "j60",
+      "param": 48,
+      "instance": 8,
+      "pilot": true,
+      "reference": {
+        "cpm": 88,
+        "lb": 88,
+        "bks": 88,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 60,
+        "cnc": 2.0833,
+        "os": 0.4446,
+        "sp": 0.2034,
+        "ad": 0.2092,
+        "la": 0.0252,
+        "i5": 0.7834,
+        "tf": 0.2181,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 1.0,
+        "rc": 0.1226
+      }
+    },
+    {
+      "name": "j1201_10",
+      "set": "j120",
+      "param": 1,
+      "instance": 10,
+      "pilot": true,
+      "reference": {
+        "cpm": 89,
+        "lb": 108,
+        "bks": 108,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1784,
+        "sp": 0.1261,
+        "ad": 0.4256,
+        "la": 0.0046,
+        "i5": 0.7893,
+        "tf": 0.3385,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.1054,
+        "rc": 0.4243
+      }
+    },
+    {
+      "name": "j1202_8",
+      "set": "j120",
+      "param": 2,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 77,
+        "lb": 83,
+        "bks": 83,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1664,
+        "sp": 0.1092,
+        "ad": 0.3962,
+        "la": 0.0065,
+        "i5": 0.8125,
+        "tf": 0.2663,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.1983,
+        "rc": 0.3412
+      }
+    },
+    {
+      "name": "j1203_9",
+      "set": "j120",
+      "param": 3,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 86,
+        "lb": 86,
+        "bks": 86,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1773,
+        "sp": 0.1345,
+        "ad": 0.4709,
+        "la": 0.0045,
+        "i5": 0.7544,
+        "tf": 0.4205,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.3064,
+        "rc": 0.2706
+      }
+    },
+    {
+      "name": "j1204_9",
+      "set": "j120",
+      "param": 4,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 79,
+        "lb": 79,
+        "bks": 79,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1738,
+        "sp": 0.1008,
+        "ad": 0.2819,
+        "la": 0.0041,
+        "i5": 0.7742,
+        "tf": 0.2531,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.3938,
+        "rc": 0.2527
+      }
+    },
+    {
+      "name": "j1205_1",
+      "set": "j120",
+      "param": 5,
+      "instance": 1,
+      "pilot": true,
+      "reference": {
+        "cpm": 92,
+        "lb": 92,
+        "bks": 92,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1706,
+        "sp": 0.1261,
+        "ad": 0.3795,
+        "la": 0.0062,
+        "i5": 0.769,
+        "tf": 0.3673,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.5076,
+        "rc": 0.2359
+      }
+    },
+    {
+      "name": "j1206_10",
+      "set": "j120",
+      "param": 6,
+      "instance": 10,
+      "pilot": false,
+      "reference": {
+        "cpm": 93,
+        "lb": 158,
+        "bks": 170,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1529,
+        "sp": 0.1092,
+        "ad": 0.3512,
+        "la": 0.0016,
+        "i5": 0.725,
+        "tf": 0.3258,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.1024,
+        "rc": 0.373
+      }
+    },
+    {
+      "name": "j1207_4",
+      "set": "j120",
+      "param": 7,
+      "instance": 4,
+      "pilot": true,
+      "reference": {
+        "cpm": 85,
+        "lb": 107,
+        "bks": 112,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.2119,
+        "sp": 0.1429,
+        "ad": 0.4394,
+        "la": 0.0061,
+        "i5": 0.7906,
+        "tf": 0.3783,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.2063,
+        "rc": 0.2771
+      }
+    },
+    {
+      "name": "j1208_3",
+      "set": "j120",
+      "param": 8,
+      "instance": 3,
+      "pilot": false,
+      "reference": {
+        "cpm": 88,
+        "lb": 95,
+        "bks": 95,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1786,
+        "sp": 0.1092,
+        "ad": 0.3919,
+        "la": 0.0082,
+        "i5": 0.775,
+        "tf": 0.2852,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.2965,
+        "rc": 0.2264
+      }
+    },
+    {
+      "name": "j1209_1",
+      "set": "j120",
+      "param": 9,
+      "instance": 1,
+      "pilot": false,
+      "reference": {
+        "cpm": 88,
+        "lb": 88,
+        "bks": 88,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1818,
+        "sp": 0.1176,
+        "ad": 0.4286,
+        "la": 0.0044,
+        "i5": 0.7782,
+        "tf": 0.3279,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.396,
+        "rc": 0.1808
+      }
+    },
+    {
+      "name": "j12010_9",
+      "set": "j120",
+      "param": 10,
+      "instance": 9,
+      "pilot": true,
+      "reference": {
+        "cpm": 77,
+        "lb": 77,
+        "bks": 77,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1763,
+        "sp": 0.1008,
+        "ad": 0.391,
+        "la": 0.0046,
+        "i5": 0.8045,
+        "tf": 0.2282,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.4961,
+        "rc": 0.1254
+      }
+    },
+    {
+      "name": "j12011_2",
+      "set": "j120",
+      "param": 11,
+      "instance": 2,
+      "pilot": false,
+      "reference": {
+        "cpm": 78,
+        "lb": 148,
+        "bks": 157,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1601,
+        "sp": 0.1092,
+        "ad": 0.4325,
+        "la": 0.0041,
+        "i5": 0.7694,
+        "tf": 0.3251,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.1025,
+        "rc": 0.3052
+      }
+    },
+    {
+      "name": "j12012_10",
+      "set": "j120",
+      "param": 12,
+      "instance": 10,
+      "pilot": false,
+      "reference": {
+        "cpm": 84,
+        "lb": 142,
+        "bks": 143,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1732,
+        "sp": 0.1176,
+        "ad": 0.4082,
+        "la": 0.0061,
+        "i5": 0.8013,
+        "tf": 0.3259,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.1979,
+        "rc": 0.2201
+      }
+    },
+    {
+      "name": "j12013_7",
+      "set": "j120",
+      "param": 13,
+      "instance": 7,
+      "pilot": true,
+      "reference": {
+        "cpm": 105,
+        "lb": 107,
+        "bks": 109,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1803,
+        "sp": 0.1176,
+        "ad": 0.3878,
+        "la": 0.0032,
+        "i5": 0.7462,
+        "tf": 0.3211,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.2997,
+        "rc": 0.169
+      }
+    },
+    {
+      "name": "j12014_8",
+      "set": "j120",
+      "param": 14,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 101,
+        "lb": 110,
+        "bks": 112,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1811,
+        "sp": 0.1092,
+        "ad": 0.2583,
+        "la": 0.0056,
+        "i5": 0.7403,
+        "tf": 0.2039,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.3978,
+        "rc": 0.1636
+      }
+    },
+    {
+      "name": "j12015_3",
+      "set": "j120",
+      "param": 15,
+      "instance": 3,
+      "pilot": false,
+      "reference": {
+        "cpm": 87,
+        "lb": 87,
+        "bks": 87,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1765,
+        "sp": 0.1261,
+        "ad": 0.3692,
+        "la": 0.0027,
+        "i5": 0.7583,
+        "tf": 0.3474,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.5018,
+        "rc": 0.1276
+      }
+    },
+    {
+      "name": "j12016_8",
+      "set": "j120",
+      "param": 16,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 77,
+        "lb": 183,
+        "bks": 194,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1654,
+        "sp": 0.1008,
+        "ad": 0.391,
+        "la": 0.0049,
+        "i5": 0.7909,
+        "tf": 0.2445,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.0996,
+        "rc": 0.2661
+      }
+    },
+    {
+      "name": "j12017_4",
+      "set": "j120",
+      "param": 17,
+      "instance": 4,
+      "pilot": false,
+      "reference": {
+        "cpm": 91,
+        "lb": 118,
+        "bks": 120,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1738,
+        "sp": 0.1261,
+        "ad": 0.5026,
+        "la": 0.0048,
+        "i5": 0.7714,
+        "tf": 0.3904,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.1975,
+        "rc": 0.1545
+      }
+    },
+    {
+      "name": "j12018_2",
+      "set": "j120",
+      "param": 18,
+      "instance": 2,
+      "pilot": true,
+      "reference": {
+        "cpm": 111,
+        "lb": 111,
+        "bks": 116,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1831,
+        "sp": 0.1345,
+        "ad": 0.3343,
+        "la": 0.0031,
+        "i5": 0.7511,
+        "tf": 0.3604,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.2975,
+        "rc": 0.146
+      }
+    },
+    {
+      "name": "j12019_8",
+      "set": "j120",
+      "param": 19,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 93,
+        "lb": 93,
+        "bks": 93,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.186,
+        "sp": 0.1092,
+        "ad": 0.4165,
+        "la": 0.0043,
+        "i5": 0.7819,
+        "tf": 0.2409,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.4,
+        "rc": 0.1109
+      }
+    },
+    {
+      "name": "j12020_8",
+      "set": "j120",
+      "param": 20,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 107,
+        "lb": 107,
+        "bks": 107,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.475,
+        "os": 0.1815,
+        "sp": 0.1345,
+        "ad": 0.3556,
+        "la": 0.003,
+        "i5": 0.7867,
+        "tf": 0.3629,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.4997,
+        "rc": 0.1201
+      }
+    },
+    {
+      "name": "j12021_9",
+      "set": "j120",
+      "param": 21,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 86,
+        "lb": 102,
+        "bks": 102,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2438,
+        "sp": 0.1176,
+        "ad": 0.3265,
+        "la": 0.0105,
+        "i5": 0.7859,
+        "tf": 0.2537,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.1039,
+        "rc": 0.4322
+      }
+    },
+    {
+      "name": "j12022_5",
+      "set": "j120",
+      "param": 22,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 93,
+        "lb": 93,
+        "bks": 93,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2711,
+        "sp": 0.1176,
+        "ad": 0.3061,
+        "la": 0.0124,
+        "i5": 0.7914,
+        "tf": 0.202,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.1979,
+        "rc": 0.3569
+      }
+    },
+    {
+      "name": "j12023_9",
+      "set": "j120",
+      "param": 23,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 105,
+        "lb": 107,
+        "bks": 107,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2908,
+        "sp": 0.1261,
+        "ad": 0.2872,
+        "la": 0.0073,
+        "i5": 0.7592,
+        "tf": 0.2115,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.3117,
+        "rc": 0.3372
+      }
+    },
+    {
+      "name": "j12024_7",
+      "set": "j120",
+      "param": 24,
+      "instance": 7,
+      "pilot": true,
+      "reference": {
+        "cpm": 109,
+        "lb": 112,
+        "bks": 112,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2808,
+        "sp": 0.1261,
+        "ad": 0.3077,
+        "la": 0.0089,
+        "i5": 0.7784,
+        "tf": 0.2423,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.4067,
+        "rc": 0.2578
+      }
+    },
+    {
+      "name": "j12025_5",
+      "set": "j120",
+      "param": 25,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 100,
+        "lb": 100,
+        "bks": 100,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2543,
+        "sp": 0.1345,
+        "ad": 0.4278,
+        "la": 0.0097,
+        "i5": 0.8192,
+        "tf": 0.3234,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.489,
+        "rc": 0.2387
+      }
+    },
+    {
+      "name": "j12026_9",
+      "set": "j120",
+      "param": 26,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 124,
+        "lb": 166,
+        "bks": 171,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2878,
+        "sp": 0.1429,
+        "ad": 0.4256,
+        "la": 0.0053,
+        "i5": 0.8028,
+        "tf": 0.3108,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.1013,
+        "rc": 0.3559
+      }
+    },
+    {
+      "name": "j12027_9",
+      "set": "j120",
+      "param": 27,
+      "instance": 9,
+      "pilot": true,
+      "reference": {
+        "cpm": 95,
+        "lb": 124,
+        "bks": 127,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2598,
+        "sp": 0.1261,
+        "ad": 0.3846,
+        "la": 0.01,
+        "i5": 0.8122,
+        "tf": 0.3013,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.203,
+        "rc": 0.2955
+      }
+    },
+    {
+      "name": "j12028_8",
+      "set": "j120",
+      "param": 28,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 87,
+        "lb": 99,
+        "bks": 99,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2689,
+        "sp": 0.1176,
+        "ad": 0.3061,
+        "la": 0.0109,
+        "i5": 0.7946,
+        "tf": 0.1939,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.3017,
+        "rc": 0.2282
+      }
+    },
+    {
+      "name": "j12029_7",
+      "set": "j120",
+      "param": 29,
+      "instance": 7,
+      "pilot": true,
+      "reference": {
+        "cpm": 97,
+        "lb": 97,
+        "bks": 97,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2892,
+        "sp": 0.1429,
+        "ad": 0.3114,
+        "la": 0.0077,
+        "i5": 0.768,
+        "tf": 0.2958,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.4053,
+        "rc": 0.182
+      }
+    },
+    {
+      "name": "j12030_7",
+      "set": "j120",
+      "param": 30,
+      "instance": 7,
+      "pilot": false,
+      "reference": {
+        "cpm": 93,
+        "lb": 93,
+        "bks": 93,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.322,
+        "sp": 0.1513,
+        "ad": 0.2772,
+        "la": 0.0138,
+        "i5": 0.7817,
+        "tf": 0.2503,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.5016,
+        "rc": 0.1715
+      }
+    },
+    {
+      "name": "j12031_4",
+      "set": "j120",
+      "param": 31,
+      "instance": 4,
+      "pilot": true,
+      "reference": {
+        "cpm": 112,
+        "lb": 196,
+        "bks": 218,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2632,
+        "sp": 0.1429,
+        "ad": 0.2595,
+        "la": 0.0129,
+        "i5": 0.75,
+        "tf": 0.3351,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.1016,
+        "rc": 0.3715
+      }
+    },
+    {
+      "name": "j12032_5",
+      "set": "j120",
+      "param": 32,
+      "instance": 5,
+      "pilot": true,
+      "reference": {
+        "cpm": 99,
+        "lb": 133,
+        "bks": 138,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2874,
+        "sp": 0.1176,
+        "ad": 0.2959,
+        "la": 0.0142,
+        "i5": 0.8128,
+        "tf": 0.1673,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.2026,
+        "rc": 0.2344
+      }
+    },
+    {
+      "name": "j12033_5",
+      "set": "j120",
+      "param": 33,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 108,
+        "lb": 134,
+        "bks": 142,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2905,
+        "sp": 0.1429,
+        "ad": 0.308,
+        "la": 0.0077,
+        "i5": 0.7216,
+        "tf": 0.3137,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.3032,
+        "rc": 0.2395
+      }
+    },
+    {
+      "name": "j12034_1",
+      "set": "j120",
+      "param": 34,
+      "instance": 1,
+      "pilot": false,
+      "reference": {
+        "cpm": 72,
+        "lb": 76,
+        "bks": 78,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2459,
+        "sp": 0.1092,
+        "ad": 0.3904,
+        "la": 0.0145,
+        "i5": 0.8393,
+        "tf": 0.2054,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.4037,
+        "rc": 0.1323
+      }
+    },
+    {
+      "name": "j12035_1",
+      "set": "j120",
+      "param": 35,
+      "instance": 1,
+      "pilot": false,
+      "reference": {
+        "cpm": 87,
+        "lb": 87,
+        "bks": 87,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2443,
+        "sp": 0.1008,
+        "ad": 0.2897,
+        "la": 0.009,
+        "i5": 0.806,
+        "tf": 0.162,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.5032,
+        "rc": 0.1115
+      }
+    },
+    {
+      "name": "j12036_3",
+      "set": "j120",
+      "param": 36,
+      "instance": 3,
+      "pilot": false,
+      "reference": {
+        "cpm": 91,
+        "lb": 217,
+        "bks": 228,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2578,
+        "sp": 0.1176,
+        "ad": 0.3673,
+        "la": 0.0127,
+        "i5": 0.7994,
+        "tf": 0.2238,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.1014,
+        "rc": 0.2905
+      }
+    },
+    {
+      "name": "j12037_10",
+      "set": "j120",
+      "param": 37,
+      "instance": 10,
+      "pilot": false,
+      "reference": {
+        "cpm": 80,
+        "lb": 127,
+        "bks": 131,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2573,
+        "sp": 0.1092,
+        "ad": 0.3251,
+        "la": 0.0113,
+        "i5": 0.793,
+        "tf": 0.2141,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.2,
+        "rc": 0.178
+      }
+    },
+    {
+      "name": "j12038_8",
+      "set": "j120",
+      "param": 38,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 98,
+        "lb": 121,
+        "bks": 125,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2739,
+        "sp": 0.1261,
+        "ad": 0.3333,
+        "la": 0.0085,
+        "i5": 0.8027,
+        "tf": 0.2269,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.3,
+        "rc": 0.1617
+      }
+    },
+    {
+      "name": "j12039_9",
+      "set": "j120",
+      "param": 39,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 77,
+        "lb": 90,
+        "bks": 92,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2524,
+        "sp": 0.1092,
+        "ad": 0.3309,
+        "la": 0.0106,
+        "i5": 0.7826,
+        "tf": 0.1981,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.4012,
+        "rc": 0.1216
+      }
+    },
+    {
+      "name": "j12040_8",
+      "set": "j120",
+      "param": 40,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 97,
+        "lb": 97,
+        "bks": 97,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 1.7833,
+        "os": 0.2709,
+        "sp": 0.1429,
+        "ad": 0.3253,
+        "la": 0.0108,
+        "i5": 0.7674,
+        "tf": 0.3218,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.5,
+        "rc": 0.1127
+      }
+    },
+    {
+      "name": "j12041_6",
+      "set": "j120",
+      "param": 41,
+      "instance": 6,
+      "pilot": false,
+      "reference": {
+        "cpm": 91,
+        "lb": 113,
+        "bks": 113,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3702,
+        "sp": 0.1345,
+        "ad": 0.2421,
+        "la": 0.0138,
+        "i5": 0.796,
+        "tf": 0.1729,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.1099,
+        "rc": 0.4378
+      }
+    },
+    {
+      "name": "j12042_4",
+      "set": "j120",
+      "param": 42,
+      "instance": 4,
+      "pilot": true,
+      "reference": {
+        "cpm": 102,
+        "lb": 104,
+        "bks": 104,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3461,
+        "sp": 0.1261,
+        "ad": 0.2821,
+        "la": 0.0266,
+        "i5": 0.8193,
+        "tf": 0.2429,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.1922,
+        "rc": 0.3826
+      }
+    },
+    {
+      "name": "j12043_5",
+      "set": "j120",
+      "param": 43,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 98,
+        "lb": 105,
+        "bks": 105,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3761,
+        "sp": 0.1429,
+        "ad": 0.2976,
+        "la": 0.0164,
+        "i5": 0.7952,
+        "tf": 0.1995,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.3054,
+        "rc": 0.3498
+      }
+    },
+    {
+      "name": "j12044_8",
+      "set": "j120",
+      "param": 44,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 105,
+        "lb": 108,
+        "bks": 108,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3822,
+        "sp": 0.1345,
+        "ad": 0.2524,
+        "la": 0.0117,
+        "i5": 0.7846,
+        "tf": 0.139,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.3969,
+        "rc": 0.3182
+      }
+    },
+    {
+      "name": "j12045_8",
+      "set": "j120",
+      "param": 45,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 103,
+        "lb": 103,
+        "bks": 103,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3667,
+        "sp": 0.1261,
+        "ad": 0.2821,
+        "la": 0.0203,
+        "i5": 0.8273,
+        "tf": 0.1609,
+        "rf": 0.25,
+        "ru": 1,
+        "rs": 0.4973,
+        "rc": 0.2775
+      }
+    },
+    {
+      "name": "j12046_9",
+      "set": "j120",
+      "param": 46,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 95,
+        "lb": 165,
+        "bks": 165,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3903,
+        "sp": 0.1429,
+        "ad": 0.3287,
+        "la": 0.0149,
+        "i5": 0.8307,
+        "tf": 0.2301,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.1018,
+        "rc": 0.3771
+      }
+    },
+    {
+      "name": "j12047_8",
+      "set": "j120",
+      "param": 47,
+      "instance": 8,
+      "pilot": true,
+      "reference": {
+        "cpm": 81,
+        "lb": 129,
+        "bks": 133,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3364,
+        "sp": 0.1092,
+        "ad": 0.299,
+        "la": 0.0189,
+        "i5": 0.8203,
+        "tf": 0.1749,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.2031,
+        "rc": 0.3107
+      }
+    },
+    {
+      "name": "j12048_7",
+      "set": "j120",
+      "param": 48,
+      "instance": 7,
+      "pilot": true,
+      "reference": {
+        "cpm": 102,
+        "lb": 106,
+        "bks": 106,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.373,
+        "sp": 0.1513,
+        "ad": 0.3883,
+        "la": 0.0209,
+        "i5": 0.838,
+        "tf": 0.2481,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.3003,
+        "rc": 0.2291
+      }
+    },
+    {
+      "name": "j12049_9",
+      "set": "j120",
+      "param": 49,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 97,
+        "lb": 97,
+        "bks": 97,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3702,
+        "sp": 0.1176,
+        "ad": 0.2551,
+        "la": 0.0139,
+        "i5": 0.8025,
+        "tf": 0.1381,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.3974,
+        "rc": 0.1959
+      }
+    },
+    {
+      "name": "j12050_1",
+      "set": "j120",
+      "param": 50,
+      "instance": 1,
+      "pilot": false,
+      "reference": {
+        "cpm": 116,
+        "lb": 116,
+        "bks": 116,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3599,
+        "sp": 0.1597,
+        "ad": 0.2632,
+        "la": 0.0189,
+        "i5": 0.7815,
+        "tf": 0.2237,
+        "rf": 0.5021,
+        "ru": 2.0083,
+        "rs": 0.5005,
+        "rc": 0.1692
+      }
+    },
+    {
+      "name": "j12051_5",
+      "set": "j120",
+      "param": 51,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 102,
+        "lb": 205,
+        "bks": 229,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.356,
+        "sp": 0.1345,
+        "ad": 0.3562,
+        "la": 0.0217,
+        "i5": 0.8308,
+        "tf": 0.2221,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.0999,
+        "rc": 0.3571
+      }
+    },
+    {
+      "name": "j12052_6",
+      "set": "j120",
+      "param": 52,
+      "instance": 6,
+      "pilot": false,
+      "reference": {
+        "cpm": 118,
+        "lb": 187,
+        "bks": 196,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3623,
+        "sp": 0.1345,
+        "ad": 0.3246,
+        "la": 0.0157,
+        "i5": 0.8109,
+        "tf": 0.1887,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.2028,
+        "rc": 0.2777
+      }
+    },
+    {
+      "name": "j12053_8",
+      "set": "j120",
+      "param": 53,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 103,
+        "lb": 135,
+        "bks": 139,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3707,
+        "sp": 0.1176,
+        "ad": 0.2857,
+        "la": 0.0131,
+        "i5": 0.818,
+        "tf": 0.1592,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.2985,
+        "rc": 0.2204
+      }
+    },
+    {
+      "name": "j12054_2",
+      "set": "j120",
+      "param": 54,
+      "instance": 2,
+      "pilot": true,
+      "reference": {
+        "cpm": 134,
+        "lb": 134,
+        "bks": 134,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3625,
+        "sp": 0.1513,
+        "ad": 0.291,
+        "la": 0.0134,
+        "i5": 0.7946,
+        "tf": 0.2987,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.3999,
+        "rc": 0.1745
+      }
+    },
+    {
+      "name": "j12055_8",
+      "set": "j120",
+      "param": 55,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 101,
+        "lb": 101,
+        "bks": 101,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3653,
+        "sp": 0.1345,
+        "ad": 0.3568,
+        "la": 0.0158,
+        "i5": 0.8269,
+        "tf": 0.2021,
+        "rf": 0.75,
+        "ru": 3,
+        "rs": 0.5022,
+        "rc": 0.1454
+      }
+    },
+    {
+      "name": "j12056_9",
+      "set": "j120",
+      "param": 56,
+      "instance": 9,
+      "pilot": false,
+      "reference": {
+        "cpm": 101,
+        "lb": 264,
+        "bks": 287,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3592,
+        "sp": 0.1261,
+        "ad": 0.2667,
+        "la": 0.0149,
+        "i5": 0.7953,
+        "tf": 0.1417,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.0974,
+        "rc": 0.3281
+      }
+    },
+    {
+      "name": "j12057_5",
+      "set": "j120",
+      "param": 57,
+      "instance": 5,
+      "pilot": false,
+      "reference": {
+        "cpm": 96,
+        "lb": 171,
+        "bks": 179,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3455,
+        "sp": 0.1261,
+        "ad": 0.3231,
+        "la": 0.0108,
+        "i5": 0.8108,
+        "tf": 0.1718,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.1996,
+        "rc": 0.2231
+      }
+    },
+    {
+      "name": "j12058_8",
+      "set": "j120",
+      "param": 58,
+      "instance": 8,
+      "pilot": false,
+      "reference": {
+        "cpm": 99,
+        "lb": 126,
+        "bks": 132,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3759,
+        "sp": 0.1261,
+        "ad": 0.3128,
+        "la": 0.0188,
+        "i5": 0.8262,
+        "tf": 0.1699,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.303,
+        "rc": 0.1652
+      }
+    },
+    {
+      "name": "j12059_3",
+      "set": "j120",
+      "param": 59,
+      "instance": 3,
+      "pilot": false,
+      "reference": {
+        "cpm": 108,
+        "lb": 108,
+        "bks": 108,
+        "bks_source": "both",
+        "optimal": true
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3648,
+        "sp": 0.1345,
+        "ad": 0.3356,
+        "la": 0.0149,
+        "i5": 0.8194,
+        "tf": 0.1851,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.398,
+        "rc": 0.1298
+      }
+    },
+    {
+      "name": "j12060_7",
+      "set": "j120",
+      "param": 60,
+      "instance": 7,
+      "pilot": false,
+      "reference": {
+        "cpm": 84,
+        "lb": 91,
+        "bks": 94,
+        "bks_source": "both",
+        "optimal": false
+      },
+      "indicators": {
+        "n": 120,
+        "cnc": 2.0917,
+        "os": 0.3773,
+        "sp": 0.1345,
+        "ad": 0.2615,
+        "la": 0.0168,
+        "i5": 0.8179,
+        "tf": 0.176,
+        "rf": 1.0,
+        "ru": 4,
+        "rs": 0.4983,
+        "rc": 0.118
+      }
+    }
+  ]
+}

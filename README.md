@@ -29,7 +29,9 @@ DSL_to_heuristics_process/
 │   ├── schedule_checker.py           # Независимый чекер расписаний (не импортирует каркас)
 │   ├── calculate_metrics.py          # Метрики графов весенних DSL (legacy, см. ADR 0002)
 │   ├── indicators.py                 # 12 стандартных индикаторов проекта (guo2021) + доп. признаки
-│   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed
+│   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
+│   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
+│   ├── metrics.py                    # RPD / ARPD относительно эталона
 │   └── llm_clients/                  # Скрипты генерации эвристик через LLM
 ├── data/
 │   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
@@ -38,10 +40,11 @@ DSL_to_heuristics_process/
 │   ├── rcplib/                       # RCPLIB: индикаторы и эталоны (не в git, см. SOURCES.md)
 │   └── references/                   # DSL и текстовые описания кейсов
 ├── docs/
-│   ├── adr/                          # Архитектурные решения (0001 — статусы, чекер, allocate_fn; 0002 — индикаторы)
+│   ├── adr/                          # Архитектурные решения (0001 — статусы, чекер, allocate_fn; 0002 — индикаторы; 0003 — протокол В1)
 │   ├── literature-review/            # Обзор литературы (этап 0)
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
+│   ├── v1_pilot/                     # Первый эксперимент В1: выборка J60/J120 (sample.json)
 │   └── runners/                      # Прогон эвристик: runner_common.py + три точки входа
 ├── tests/                            # pytest: ядро, чекер, раннеры, пять постановок
 │   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
@@ -49,6 +52,8 @@ DSL_to_heuristics_process/
 │   ├── test_runner_common.py         # Статусы, извлечение расписания, таймаут
 │   ├── test_psplib.py                # Парсер .sm: j301_1 = Case 1, отказ на чужих форматах
 │   ├── test_indicators.py            # Индикаторы: ручные примеры, инварианты, guo2021, RCPLIB
+│   ├── test_references.py            # Эталоны: файлы решений, CPM = MPM-Time, BKS из двух источников
+│   ├── test_metrics.py               # RPD / ARPD, детерминированность выборки В1
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
 ├── pytest.ini
 ├── requirements-dev.txt
@@ -413,6 +418,10 @@ python -m pytest
    (фиктивные работы, перенумерация), min/max по J30/J60/J120 против табл. 3–4 guo2021
    и построчная сверка 11 индикаторов с RCPLIB на всех 1560 инстансах. Сверки пропускаются,
    если PSPLIB или RCPLIB не скачаны (`data/psplib/SOURCES.md`, `data/rcplib/SOURCES.md`).
+7. `tests/test_references.py` — файлы решений PSPLIB, CPM совпадает с MPM-Time из `.sm`,
+   BKS — лучшее из PSPLIB и RCPLIB, противоречивые границы отклоняются.
+8. `tests/test_metrics.py` — RPD / ARPD и выборка В1 (детерминирована, `sample.json`
+   соответствует правилу отбора).
 
 ---
 
@@ -519,6 +528,33 @@ from indicators import compute_indicators
 inst = parse_sm_file("data/psplib/instances/j30/j301_1.sm")
 compute_indicators(inst)  # {"standard", "network", "resource", "extended"}
 ```
+
+### Эталоны и метрика
+
+`src/references.py` собирает для каждого инстанса эталоны: BKS — минимум верхних границ
+из файлов решений PSPLIB и RCPLIB v6 (`bks_source` — откуда), нижнюю границу — максимум
+из CPM, `lb` PSPLIB и `LB-lit` RCPLIB, флаг `optimal` (LB = BKS). Без RCPLIB работает
+только по файлам PSPLIB. `src/metrics.py` — RPD = 100 · (makespan − BKS) / BKS и ARPD;
+прогоны без допустимого расписания в ARPD не входят и считаются отдельно
+(`docs/adr/0003-v1-experiment-protocol.md`).
+
+```python
+from references import load_references
+from metrics import rpd
+refs = load_references("j60")           # {"j601_1": Reference(cpm, lb, bks, bks_source, optimal)}
+rpd(72, refs["j601_1"].bks)
+```
+
+### Выборка первого эксперимента В1
+
+```bash
+python experiments/v1_pilot/make_sample.py   # --seed 2026 --pilot 15 по умолчанию
+```
+
+По одному инстансу на каждую комбинацию параметров ProGen (J60 — 48, J120 — 60, всего 108),
+пилот — 15 случайных инстансов из каждого набора. В `experiments/v1_pilot/sample.json`
+для каждого инстанса записаны эталоны и 12 индикаторов. Файл хранится в git; тест
+`tests/test_metrics.py` проверяет, что он соответствует правилу отбора.
 
 ## Версии каркаса и данных
 
