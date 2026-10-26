@@ -59,7 +59,7 @@ def dsl_path(case: int) -> Path:
     return DSL_DIR / CASES[case][1]
 
 
-# --- независимые проверки по исходному инстансу ------------------------------
+# Независимые проверки по исходному инстансу
 
 def requirements_of(raw_job: dict) -> dict[int, int]:
     """Потребность работы в ресурсах по сырому JSON (оба формата)."""
@@ -102,7 +102,7 @@ def flat_jobs_case1(raw: dict) -> dict:
                       "req": requirements_of(j)} for j in raw["jobs"]}
 
 
-# --- синтетические инстансы ---------------------------------------------------
+# Синтетические инстансы
 
 def dsl_tmp(tmp_path: Path, raw: dict) -> Path:
     p = tmp_path / "dsl.json"
@@ -183,9 +183,7 @@ def select_first(eligible, jobs, snap, meta):
     return eligible[0]
 
 
-# =============================================================================
-# 1. Case 1: формат resource_requirements и ресурсные ограничения
-# =============================================================================
+# Case 1: формат resource_requirements и ресурсные ограничения
 
 def test_case1_list_format_of_resource_requirements_is_parsed():
     raw = instance(1)
@@ -206,9 +204,7 @@ def test_case1_default_schedule_respects_capacities_and_precedence():
     assert res["objective"]["primary"] >= 43
 
 
-# =============================================================================
-# 2. Невозобновляемые ресурсы: написание типа и бюджет
-# =============================================================================
+# Невозобновляемые ресурсы: написание типа и бюджет
 
 def test_nonrenewable_spelling_is_normalized_on_real_case3():
     meta = DSLParser().parse_file(dsl_path(3))
@@ -241,26 +237,24 @@ def test_job_exceeding_nonrenewable_stock_cannot_start():
     assert res["objective"]["primary"] is None
 
 
-# =============================================================================
-# 3. Контракт allocate_fn: ресурсы бронирует каркас, функция выбирает время старта
-# =============================================================================
+# Контракт allocate_fn: ресурсы бронирует каркас, функция выбирает время старта
 
 def test_legacy_allocation_below_requirement_is_corrected_and_counted(tmp_path):
     res = solve(dsl_tmp(tmp_path, DSL_BASE), diamond(), scheme="legacy",
                 allocate_fn=lambda job, r, s, m: {})
     s = res["schedule"]
     assert res["status"] == "complete"
-    # считается каждый вызов allocate_fn: работа 2, работа 3 (заблокирована,
+    # Считается каждый вызов allocate_fn: работа 2, работа 3 (заблокирована,
     # повтор после ожидания) — 3; для работ 1 и 4 без потребности {} допустим
     assert res["allocate_violations"] == 3
-    assert s[2] + 3 <= s[3] or s[3] + 2 <= s[2]  # мощности не превышены
+    assert s[2] + 3 <= s[3] or s[3] + 2 <= s[2]  # Мощности не превышены
 
 
 def test_legacy_allocation_to_unknown_resource_is_counted(tmp_path):
     res = solve(dsl_tmp(tmp_path, DSL_BASE), diamond(), scheme="legacy",
                 allocate_fn=lambda job, r, s, m: {**job.resources_required, 99: 1})
     assert res["status"] == "complete"
-    assert res["allocate_violations"] == 5  # каждый вызов, включая повтор после ожидания
+    assert res["allocate_violations"] == 5  # Каждый вызов, включая повтор после ожидания
 
 
 def test_legacy_strict_raises_on_allocation_violation(tmp_path):
@@ -274,7 +268,7 @@ def test_released_capacity_equals_what_was_allocated():
     state = ProblemFactory().build(diamond(), meta)
     state.start_job(1, {})
     state.finish_jobs_at(0)
-    state.start_job(2, {1: 3})  # больше, чем требуется (2), но в пределах мощности
+    state.start_job(2, {1: 3})  # Больше, чем требуется (2), но в пределах мощности
     assert state.available_capacity(1) == 0
     state.advance_time()
     assert state.renewable_used[1] == 0
@@ -328,9 +322,11 @@ def test_invalid_select_is_counted_not_hidden(tmp_path):
 
 
 def gap_instance() -> dict:
-    """R1 capacity 2. Порядок выбора A(2), B(3), C(4): A[0,1) берёт 1,
+    """
+    R1 capacity 2. Порядок выбора A(2), B(3), C(4): A[0,1) берет 1,
     B(req 2) не помещается до t=1, C(req 1, d=1) помещается в t=0 рядом с A —
-    SSGS вставляет C раньше B, пошаговая схема ставит C после B."""
+    SSGS вставляет C раньше B, пошаговая схема ставит C после B.
+    """
     return {
         "resources": [{"id": 1, "name": "R1", "capacity": 2, "type": "renewable"}],
         "jobs": [
@@ -367,9 +363,7 @@ def test_legacy_scheme_does_not_insert_into_gap(tmp_path):
     assert res["objective"]["primary"] == 4
 
 
-# =============================================================================
-# 4. Статус результата вместо "запустилось без исключения"
-# =============================================================================
+# Статус результата
 
 def test_complete_schedule_reports_status(tmp_path):
     res = solve(dsl_tmp(tmp_path, DSL_BASE), diamond())
@@ -398,9 +392,7 @@ def test_job_larger_than_capacity_is_infeasible(tmp_path):
     assert 2 in res["unscheduled"]
 
 
-# =============================================================================
-# 5. Многопроектная задача
-# =============================================================================
+# Многопроектная задача
 
 def test_multi_project_ids_do_not_collide_in_synthetic_instance():
     meta = DSLParser().parse_dict(DSL_MP)
@@ -434,9 +426,7 @@ def test_multi_project_objective_is_sum_of_project_makespans():
     assert obj["portfolio_makespan"] == 4
 
 
-# =============================================================================
-# 6. Строгость парсинга
-# =============================================================================
+# Строгость парсинга
 
 def test_unknown_resource_type_raises():
     raw = diamond()
@@ -459,9 +449,7 @@ def test_predecessor_outside_instance_raises():
         ProblemFactory().build(raw, DSLParser().parse_dict(DSL_BASE))
 
 
-# =============================================================================
-# 7. Данные: Case 2 согласован с сырым файлом OR-Library
-# =============================================================================
+# Данные: Case 2 согласован с сырым файлом OR-Library
 
 def test_case2_due_date_matches_biskup_feldmann_formula():
     raw = instance(2)
@@ -476,9 +464,7 @@ def test_case2_due_date_matches_biskup_feldmann_formula():
             == params["common_due_date"]
 
 
-# =============================================================================
-# 8. Реальные инстансы: полное расписание, а не покрытие "> 0"
-# =============================================================================
+# Реальные инстансы: полное расписание, а не покрытие "> 0"
 
 @pytest.mark.parametrize("case", [1, 2, 5])
 def test_real_instance_is_scheduled_completely(case):
@@ -489,9 +475,7 @@ def test_real_instance_is_scheduled_completely(case):
     assert res["objective"]["primary"] is not None
 
 
-# =============================================================================
-# 9. Замечания первого ревью
-# =============================================================================
+# Замечания первого ревью
 
 def test_zero_duration_job_gets_single_feasible_start(tmp_path):
     """Фиктивной работе (d = 0) нечего ждать: единственный кандидат — граница по
