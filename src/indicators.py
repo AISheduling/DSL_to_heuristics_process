@@ -222,7 +222,13 @@ def resource_indicators(net: ProjectNetwork) -> dict:
         vals = [v[key] for v in per_resource.values() if v[key] is not None]
         return mean(vals) if vals else None
 
-    return {"rf": rf, "ru": ru, "rs": avg("rs"), "rc": avg("rc"),
+    # RC проекта, как в RCPLIB: среднее r_ik / a_k по всем парам (работа, ресурс) с r_ik > 0,
+    # а не среднее по ресурсам от RC_k (ADR 0002)
+    shares = [r / net.capacity[k] for i in net.activities for k, r in net.demand[i].items()
+              if r > 0 and k in net.capacity]
+    rc = mean(shares) if shares else None
+
+    return {"rf": rf, "ru": ru, "rs": avg("rs"), "rc": rc,
             "per_resource": per_resource}
 
 

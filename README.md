@@ -35,7 +35,7 @@ DSL_to_heuristics_process/
 │   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
 │   ├── processed/                    # Готовые инстансы задач (JSON)
 │   ├── psplib/                       # PSPLIB J30/J60/J120 (не в git, см. SOURCES.md)
-│   ├── rcplib/                       # Индикаторы RCPLIB (не в git, см. SOURCES.md)
+│   ├── rcplib/                       # RCPLIB: индикаторы и эталоны (не в git, см. SOURCES.md)
 │   └── references/                   # DSL и текстовые описания кейсов
 ├── docs/
 │   ├── adr/                          # Архитектурные решения (0001 — статусы, чекер, allocate_fn; 0002 — индикаторы)
@@ -48,7 +48,7 @@ DSL_to_heuristics_process/
 │   ├── test_checker.py               # Сломанные и корректные расписания через чекер
 │   ├── test_runner_common.py         # Статусы, извлечение расписания, таймаут
 │   ├── test_psplib.py                # Парсер .sm: j301_1 = Case 1, отказ на чужих форматах
-│   ├── test_indicators.py            # Индикаторы: ручные примеры, инварианты, диапазоны guo2021
+│   ├── test_indicators.py            # Индикаторы: ручные примеры, инварианты, guo2021, RCPLIB
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
 ├── pytest.ini
 ├── requirements-dev.txt
@@ -410,8 +410,9 @@ python -m pytest
    закреплён честный статус `incomplete`.
 5. `tests/test_psplib.py` — парсер `.sm`: `j301_1` даёт в точности `Case1_PSPLIB_j301_1.json`.
 6. `tests/test_indicators.py` — индикаторы на сетях, посчитанных вручную, инварианты
-   (фиктивные работы, перенумерация) и min/max по J30/J60/J120 против табл. 3–4 guo2021.
-   Сверка с диапазонами пропускается, если PSPLIB не скачан.
+   (фиктивные работы, перенумерация), min/max по J30/J60/J120 против табл. 3–4 guo2021
+   и построчная сверка 11 индикаторов с RCPLIB на всех 1560 инстансах. Сверки пропускаются,
+   если PSPLIB или RCPLIB не скачаны (`data/psplib/SOURCES.md`, `data/rcplib/SOURCES.md`).
 
 ---
 

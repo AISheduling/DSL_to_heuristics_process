@@ -4,7 +4,8 @@
 1. Сети, посчитанные вручную: цепочка, параллельная сеть, ромб, избыточная длинная дуга.
 2. Инварианты: перенумерация, фиктивные работы, диапазон [0, 1].
 3. Диапазоны min/max по J30/J60/J120 из guo2021prselection, табл. 3–4 (если PSPLIB скачан).
-   Построчная сверка с RCPLIB — когда появится файл (data/rcplib/SOURCES.md).
+4. Построчная сверка 11 индикаторов с RCPLIB на J30/J60/J120 (если скачаны PSPLIB и RCPLIB,
+   data/psplib/SOURCES.md, data/rcplib/SOURCES.md).
 """
 from __future__ import annotations
 
@@ -113,8 +114,11 @@ def test_resource_factor_use_constrainedness():
     ind = flat_indicators(inst)
     assert ind["rf"] == pytest.approx(3 / 4)
     assert ind["ru"] == pytest.approx(1.5)
-    # RC_1 = 3 / 8, RC_2 = 1 / 2
-    assert ind["rc"] == pytest.approx((3 / 8 + 1 / 2) / 2)
+    # RC проекта — среднее по парам (работа, ресурс): 2/8, 4/8, 1/2; по ресурсам: RC_1 = 3/8, RC_2 = 1/2
+    assert ind["rc"] == pytest.approx((2 / 8 + 4 / 8 + 1 / 2) / 3)
+    per_resource = compute_indicators(inst)["resource"]["per_resource"]
+    assert per_resource[1]["rc"] == pytest.approx(3 / 8)
+    assert per_resource[2]["rc"] == pytest.approx(1 / 2)
 
 
 def test_unused_resource_excluded_from_rs_rc():
@@ -192,9 +196,6 @@ INSTANCES_PER_SET = {"j30": 480, "j60": 480, "j120": 600}
 # Таблица дает два знака; расхождение в одну единицу последнего знака допускаем
 # (OS J60 max, AD и LA J120 min — см. ADR 0002).
 ROUNDING_TOL = 0.01 + 1e-9
-# Максимум RC выше табличного на 0.01–0.03 при любой из проверенных формул.
-# Открытый вопрос до сверки с RCPLIB (ADR 0002).
-KNOWN_DEVIATIONS = {("j30", "rc", 1): 0.04, ("j60", "rc", 1): 0.04, ("j120", "rc", 1): 0.04}
 
 
 @pytest.fixture(scope="module")
@@ -214,8 +215,7 @@ def test_psplib_ranges_match_guo2021(psplib_indicators, set_name):
     for key, bounds in GUO2021_RANGES[set_name].items():
         values = [r[key] for r in rows]
         for side, got in ((0, min(values)), (1, max(values))):
-            tol = KNOWN_DEVIATIONS.get((set_name, key, side), ROUNDING_TOL)
-            if abs(round(got, 2) - bounds[side]) > tol:
+            if abs(round(got, 2) - bounds[side]) > ROUNDING_TOL:
                 errors.append(f"{key} {'min' if side == 0 else 'max'}: {got:.4f} vs {bounds[side]}")
     assert not errors, errors
 
@@ -225,3 +225,77 @@ def test_psplib_rf_levels(psplib_indicators, set_name):
     # В таблице — 4 уровня генератора ProGen; посчитанный RF отклоняется от уровня меньше чем на 0.01
     for r in psplib_indicators[set_name]:
         assert min(abs(r["rf"] - lvl) for lvl in GUO2021_RF) < 0.01, r["rf"]
+
+
+# Построчная сверка с RCPLIB
+
+RCPLIB_FILE = ROOT / "data" / "rcplib" / "RCPLIB (Parameters and BKS).xlsx"
+RCPLIB_SUBSETS = {"j30": "J30", "j60": "J60", "j120": "J120"}
+RCPLIB_COLUMNS = {"cnc": "CNC", "os": "OS", "sp": "SP", "ad": "AD", "la": "LA", "i5": "I5",
+                  "tf": "TF", "rf": "RF", "ru": "RU", "rs": "RS", "rc": "RC"}
+# RCPLIB дает три знака; у части значений третий знак усечен, а не округлен (OS j3032_8:
+# 0.42299 -> 0.422), поэтому допуск — одна единица третьего знака.
+RCPLIB_TOL = 0.001 + 1e-9
+# В RCPLIB у j3017_4 три ресурса: R3, который использует только работа 29 (спрос 9 при
+# мощности 9), удален. Сетевые индикаторы совпадают, ресурсные — после удаления R3.
+RCPLIB_WITHOUT_RESOURCE = {"j3017_4": 3}
+
+
+@pytest.fixture(scope="module")
+def rcplib_rows():
+    if not RCPLIB_FILE.exists():
+        pytest.skip("RCPLIB не скачан (data/rcplib/SOURCES.md)")
+    if not PSPLIB_DIR.exists():
+        pytest.skip("PSPLIB не скачан (data/psplib/SOURCES.md)")
+    from openpyxl import load_workbook
+
+    wb = load_workbook(RCPLIB_FILE, read_only=True)
+    rows = wb["PSPLIB"].iter_rows(values_only=True, max_col=30)
+    header = list(next(rows))
+    col = {h: header.index(h) for h in ("SubSet", "FileName", *RCPLIB_COLUMNS.values())}
+    out = {}
+    for r in rows:
+        if r[col["FileName"]] is None:
+            continue
+        name = str(r[col["FileName"]]).removesuffix(".sm")
+        out[(r[col["SubSet"]], name)] = {k: float(r[col[c]]) for k, c in RCPLIB_COLUMNS.items()}
+    wb.close()
+    return out
+
+
+def drop_resource(instance: dict, resource_id: int) -> dict:
+    return {
+        "resources": [r for r in instance["resources"] if r["id"] != resource_id],
+        "jobs": [{**j, "resource_requirements": [rr for rr in j["resource_requirements"]
+                                                 if rr["resource_id"] != resource_id]}
+                 for j in instance["jobs"]],
+    }
+
+
+@pytest.mark.parametrize("set_name", list(RCPLIB_SUBSETS))
+def test_psplib_matches_rcplib_row_by_row(rcplib_rows, set_name):
+    from psplib import iter_set
+
+    checked, errors = 0, []
+    for name, inst in iter_set(PSPLIB_DIR / set_name):
+        ref = rcplib_rows[(RCPLIB_SUBSETS[set_name], name)]
+        if name in RCPLIB_WITHOUT_RESOURCE:
+            inst = drop_resource(inst, RCPLIB_WITHOUT_RESOURCE[name])
+        got = flat_indicators(inst)
+        for key, expected in ref.items():
+            if abs(got[key] - expected) > RCPLIB_TOL:
+                errors.append(f"{name} {key}: {got[key]:.4f} vs {expected}")
+        checked += 1
+    assert checked == INSTANCES_PER_SET[set_name]
+    assert not errors, errors[:20]
+
+
+def test_j3017_4_differs_from_rcplib_only_by_resource_r3(rcplib_rows):
+    from psplib import parse_sm_file
+
+    inst = parse_sm_file(PSPLIB_DIR / "j30" / "j3017_4.sm")
+    ref = rcplib_rows[("J30", "j3017_4")]
+    as_is = flat_indicators(inst)
+    assert abs(as_is["rf"] - ref["rf"]) > 0.05  # с R3 ресурсные индикаторы расходятся
+    for key in ("cnc", "os", "sp", "ad", "la", "i5", "tf"):
+        assert abs(as_is[key] - ref[key]) <= RCPLIB_TOL, key
