@@ -32,7 +32,8 @@ DSL_to_heuristics_process/
 │   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
 │   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
 │   ├── metrics.py                    # RPD / ARPD относительно эталона
-│   └── llm_clients/                  # Скрипты генерации эвристик через LLM
+│   ├── dsl_builder.py                # DSL из инстанса: составы индикаторов none / network / resource / all
+│   └── llm_clients/                  # Скрипты генерации эвристик через LLM; prompt_v1.py — промпт В1
 ├── data/
 │   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
 │   ├── processed/                    # Готовые инстансы задач (JSON)
@@ -54,6 +55,7 @@ DSL_to_heuristics_process/
 │   ├── test_indicators.py            # Индикаторы: ручные примеры, инварианты, guo2021, RCPLIB
 │   ├── test_references.py            # Эталоны: файлы решений, CPM = MPM-Time, BKS из двух источников
 │   ├── test_metrics.py               # RPD / ARPD, детерминированность выборки В1
+│   ├── test_dsl_builder.py           # DSL из инстанса, DSLMeta.indicators, промпт В1
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
 ├── pytest.ini
 ├── requirements-dev.txt
@@ -422,6 +424,9 @@ python -m pytest
    BKS — лучшее из PSPLIB и RCPLIB, противоречивые границы отклоняются.
 8. `tests/test_metrics.py` — RPD / ARPD и выборка В1 (детерминирована, `sample.json`
    соответствует правилу отбора).
+9. `tests/test_dsl_builder.py` — DSL из инстанса (составы, без утечки имени и эталонов,
+   (а) и (б) различаются только блоком индикаторов), каркас читает DSL-словарь, промпт В1
+   общий для обоих уровней и без полей весенних постановок.
 
 ---
 
@@ -555,6 +560,22 @@ python experiments/v1_pilot/make_sample.py   # --seed 2026 --pilot 15 по ум�
 пилот — 15 случайных инстансов из каждого набора. В `experiments/v1_pilot/sample.json`
 для каждого инстанса записаны эталоны и 12 индикаторов. Файл хранится в git; тест
 `tests/test_metrics.py` проверяет, что он соответствует правилу отбора.
+
+### DSL из инстанса и промпт В1
+
+`src/dsl_builder.py` строит DSL для одномодового RCPSP прямо из инстанса, без рукописных
+файлов. Составы метаданных: `none` (без индикаторов, уровень (б) В1), `all` (12 индикаторов,
+уровень (а)), `network` и `resource` (для В2). Каркас принимает DSL-словарь и отдает
+индикаторы функциям эвристики как `meta.indicators`. Промпт В1 — `src/llm_clients/prompt_v1.py`:
+общий для обоих уровней, различается только DSL (`docs/adr/0003-v1-experiment-protocol.md`).
+
+```python
+from dsl_builder import build_dsl
+from scheduler_skeleton import build_state, run_schedule, default_select, default_allocate
+dsl = build_dsl(inst, "all")             # {"project_id": "RCPSP", ..., "project_indicators": {...}}
+meta, state = build_state(dsl, inst)      # meta.indicators == {"n": 60, "os": 0.259, ...}
+run_schedule(state, default_select, default_allocate)
+```
 
 ## Версии каркаса и данных
 

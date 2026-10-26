@@ -82,6 +82,9 @@ class DSLMeta:
     has_non_renewable: bool
     is_multi_project: bool
     is_single_machine: bool
+    # Индикаторы проекта из блока project_indicators (src/dsl_builder.py, ADR 0003):
+    # {"n": 60, "os": 0.26, ...}; пусто, если DSL их не содержит.
+    indicators: dict = field(default_factory=dict)
 
 
 class DSLParser:
@@ -119,6 +122,7 @@ class DSLParser:
         secondary_params = secondary.get("parameters", {}) if secondary else {}
 
         graph = d.get("graph_meta_characteristics", {})
+        indicators = dict((d.get("project_indicators") or {}).get("values", {}))
 
         cond = d.get("conditional_scheduling", {})
         conditional_scheduling = bool(cond.get("enabled", False))
@@ -148,6 +152,7 @@ class DSLParser:
             has_non_renewable=has_non_renewable,
             is_multi_project=is_multi_project,
             is_single_machine=is_single_machine,
+            indicators=indicators,
         )
 
     @staticmethod
@@ -174,10 +179,13 @@ class DSLParser:
         if meta.is_single_machine:
             lines.append("Single-machine: YES")
         g = meta.graph
-        lines.append(
-            f"Graph: nodes={g.get('nodes')}, edges={g.get('edges')}, "
-            f"CPL={g.get('cpl', '?')}, max_par={g.get('max_parallelism', '?')}"
-        )
+        if g:
+            lines.append(
+                f"Graph: nodes={g.get('nodes')}, edges={g.get('edges')}, "
+                f"CPL={g.get('cpl', '?')}, max_par={g.get('max_parallelism', '?')}"
+            )
+        if meta.indicators:
+            lines.append("Indicators: " + ", ".join(f"{k}={v}" for k, v in meta.indicators.items()))
         return "\n".join(lines)
 
 
@@ -758,9 +766,10 @@ class ProblemFactory:
 
 # Публичный API
 
-def build_state(dsl_path: str | Path, instance_data: dict) -> tuple[DSLMeta, ProblemState]:
-    """Шаг 1+2: парсит DSL и строит начальное состояние задачи."""
-    meta = DSLParser().parse_file(dsl_path)
+def build_state(dsl: str | Path | dict, instance_data: dict) -> tuple[DSLMeta, ProblemState]:
+    """Парсит DSL (путь к файлу или словарь) и строит начальное состояние задачи."""
+    parser = DSLParser()
+    meta = parser.parse_dict(dsl) if isinstance(dsl, dict) else parser.parse_file(dsl)
     state = ProblemFactory().build(instance_data, meta)
     return meta, state
 
