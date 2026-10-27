@@ -108,7 +108,9 @@ def _group_stats(means, instances, groups: dict[str, list[str]]) -> dict:
     return out
 
 
-def cost(generation_summary: dict | None, price_in: float | None, price_out: float | None) -> dict | None:
+def cost(generation_summary: dict | None, price_in: float | None, price_out: float | None,
+         spent_usd: float | None = None) -> dict | None:
+    """Оценка по ценам за токены и, если задано, фактическое списание по данным прокси LiteLLM."""
     if not generation_summary:
         return None
     tokens = generation_summary.get("tokens", {})
@@ -117,11 +119,15 @@ def cost(generation_summary: dict | None, price_in: float | None, price_out: flo
         usd = tokens.get("prompt", 0) * price_in / 1e6 + tokens.get("completion", 0) * price_out / 1e6
         out.update({"usd": round(usd, 4), "price_in_per_1m": price_in, "price_out_per_1m": price_out,
                     "usd_per_call": round(usd / out["calls"], 5) if out["calls"] else None})
+    if spent_usd is not None:
+        out.update({"spent_usd": spent_usd,
+                    "spent_usd_per_call": round(spent_usd / out["calls"], 5) if out["calls"] else None})
     return out
 
 
 def build_report(run: str, results_dir: Path, generations_dir: Path, sample_file: Path,
-                 price_in: float | None = None, price_out: float | None = None) -> dict:
+                 price_in: float | None = None, price_out: float | None = None,
+                 spent_usd: float | None = None) -> dict:
     runs = load_rows(results_dir / run / "runs.csv")
     baselines = load_rows(results_dir / run / "baselines.csv")
     indicators = {i["name"]: i["indicators"]
@@ -149,7 +155,7 @@ def build_report(run: str, results_dir: Path, generations_dir: Path, sample_file
         "levels": levels, "rules": rules,
         "comparisons": compare(means),
         "breakdown": breakdown(means, indicators),
-        "cost": cost(gen_summary, price_in, price_out),
+        "cost": cost(gen_summary, price_in, price_out, spent_usd),
     }
 
 
@@ -197,8 +203,11 @@ def to_markdown(rep: dict) -> str:
         t = c["tokens"]
         line = (f"## Стоимость\n\nВызовов: {c['calls']}; токены: вход {t.get('prompt')}, выход "
                 f"{t.get('completion')} (из них рассуждение {t.get('reasoning')}).")
+        if "spent_usd" in c:
+            line += f" Списано по данным LiteLLM: ${c['spent_usd']} (${c['spent_usd_per_call']} за вызов)."
         if "usd" in c:
-            line += f" Стоимость ≈ ${c['usd']} (${c['usd_per_call']} за вызов)."
+            line += (f" Оценка по ценам ${c['price_in_per_1m']} / ${c['price_out_per_1m']} за 1 млн: "
+                     f"${c['usd']} (${c['usd_per_call']} за вызов).")
         lines += [line, ""]
     return "\n".join(lines)
 
@@ -208,10 +217,12 @@ def main(argv: list[str] | None = None) -> dict:
     p.add_argument("--run", required=True)
     p.add_argument("--price-in", type=float, help="$ за 1 млн входных токенов")
     p.add_argument("--price-out", type=float, help="$ за 1 млн выходных токенов")
+    p.add_argument("--spent-usd", type=float, help="фактически списано за запуск (Spend в LiteLLM), $")
     p.add_argument("--results", type=Path, default=RESULTS_DIR)
     p.add_argument("--generations", type=Path, default=GENERATIONS_DIR)
     args = p.parse_args(argv)
-    rep = build_report(args.run, args.results, args.generations, SAMPLE_FILE, args.price_in, args.price_out)
+    rep = build_report(args.run, args.results, args.generations, SAMPLE_FILE, args.price_in, args.price_out,
+                       args.spent_usd)
     out_dir = args.results / args.run
     (out_dir / "report.json").write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
     (out_dir / "report.md").write_text(to_markdown(rep), encoding="utf-8")

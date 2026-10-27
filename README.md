@@ -629,12 +629,15 @@ python experiments/v1_pilot/run_kernel.py --run pilot-haiku
 ### Оценка (шаг 6)
 
 ```bash
-python experiments/v1_pilot/evaluate.py --run pilot-haiku --price-in 0.10 --price-out 0.50
+python experiments/v1_pilot/evaluate.py --run pilot-haiku --price-in 0.10 --price-out 0.50 --spent-usd 0.0991
 ```
 
 Доля допустимых генераций и ARPD к BKS и к CPM по уровням (а), (б) и правилам; парные
 сравнения по инстансам (а)–(б), (а)–LST, (б)–LST — тест Уилкоксона с поправкой Холма и
-порог δ = 0,5 п. п.; разбор по RS, OS, RF; стоимость генерации по ценам ($ за 1 млн токенов).
+порог δ = 0,5 п. п.; разбор по RS, OS, RF; стоимость генерации — фактическое списание
+(`--spent-usd`, Spend ключа в LiteLLM за запуск) и оценка по ценам ($ за 1 млн токенов).
+Прокси списывает примерно вчетверо меньше оценки по ценам ключа, поэтому основное число —
+списание.
 Результат — `experiments/v1_pilot/results/<run>/report.md` и `report.json`
 (`docs/adr/0003-v1-experiment-protocol.md`, п. 9).
 

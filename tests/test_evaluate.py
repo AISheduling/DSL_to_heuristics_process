@@ -91,3 +91,11 @@ def test_report_on_prepared_results(tmp_path):
     assert rep["cost"] is None
     md = evaluate.to_markdown(rep)
     assert "| a vs b | 6 |" in md and "-0.00" not in md
+
+
+def test_cost_estimate_and_spent():
+    summary = {"tasks": 4, "tokens": {"prompt": 1_000_000, "completion": 2_000_000}}
+    c = evaluate.cost(summary, 0.10, 0.50, spent_usd=0.2)
+    assert c["usd"] == pytest.approx(1.1) and c["usd_per_call"] == pytest.approx(0.275)
+    assert c["spent_usd"] == 0.2 and c["spent_usd_per_call"] == pytest.approx(0.05)
+    assert "spent_usd" not in evaluate.cost(summary, 0.10, 0.50)
