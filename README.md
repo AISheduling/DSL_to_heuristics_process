@@ -32,6 +32,7 @@ DSL_to_heuristics_process/
 │   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
 │   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
 │   ├── metrics.py                    # RPD / ARPD относительно эталона
+│   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS для SSGS
 │   ├── dsl_builder.py                # DSL из инстанса: составы индикаторов none / network / resource / all
 │   └── llm_clients/                  # Скрипты генерации эвристик через LLM; prompt_v1.py — промпт В1
 ├── data/
@@ -45,7 +46,7 @@ DSL_to_heuristics_process/
 │   ├── literature-review/            # Обзор литературы (этап 0)
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
-│   ├── v1_pilot/                     # Первый эксперимент В1: выборка (sample.json), генерация (generate.py)
+│   ├── v1_pilot/                     # Эксперимент В1: выборка, генерация (generate.py), прогон (run_kernel.py)
 │   └── runners/                      # Прогон эвристик: runner_common.py + три точки входа
 ├── tests/                            # pytest: ядро, чекер, раннеры, пять постановок
 │   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
@@ -57,6 +58,7 @@ DSL_to_heuristics_process/
 │   ├── test_metrics.py               # RPD / ARPD, детерминированность выборки В1
 │   ├── test_dsl_builder.py           # DSL из инстанса, DSLMeta.indicators, промпт В1
 │   ├── test_generation.py            # Генерация В1 на подменном клиенте: продолжение, ошибки
+│   ├── test_run_kernel.py            # Правила приоритета, общий модуль функций, прогон В1 в каркасе
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
 ├── pytest.ini
 ├── requirements-dev.txt
@@ -430,6 +432,8 @@ python -m pytest
    общий для обоих уровней и без полей весенних постановок.
 10. `tests/test_generation.py` — генерация В1 на подменном клиенте LLM: план 30 × 2 × 3,
     продолжение после обрыва, запрет продолжать с другими настройками, ошибки API и разбора.
+11. `tests/test_run_kernel.py` — правила приоритета (поздние сроки по CPM, допустимые
+    расписания), общий модуль для двух функций LLM, прогон подготовленных генераций в каркасе.
 
 ---
 
@@ -599,6 +603,20 @@ python experiments/v1_pilot/generate.py --run pilot-haiku --pilot-only --gens 3 
 перезапрашивает файлы с ошибкой. Настройки (модель, `temperature` 0.7, `max_tokens` 16000,
 версия промпта, коммит) пишутся в `manifest.json`, итог — в `summary.json`
 (`docs/adr/0003-v1-experiment-protocol.md`, п. 7).
+
+### Прогон генераций в каркасе (шаг 5)
+
+```bash
+python experiments/v1_pilot/run_kernel.py --run pilot-haiku
+```
+
+Каждая пара функций из `generations/<run>/` запускается только на своем инстансе: одно
+построение SSGS в отдельном процессе (таймаут 30 с), makespan — из независимого чекера.
+Код `select_job_fn` и `allocate_fn` исполняется в одном модуле, чтобы общие объявления
+(кэш, вспомогательные функции) были видны обеим функциям. На тех же инстансах считаются
+базовые правила `src/priority_rules.py` (LFT, LST, MTS) и встроенное правило каркаса.
+Результат — `experiments/v1_pilot/results/<run>/`: `runs.csv`, `baselines.csv`, `summary.json`
+(`docs/adr/0003-v1-experiment-protocol.md`, п. 8).
 
 ## Версии каркаса и данных
 

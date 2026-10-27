@@ -104,11 +104,15 @@ def test_resume_with_other_settings_is_refused(tmp_path):
 
 
 def test_api_errors_are_retried_then_recorded(tmp_path, monkeypatch):
-    monkeypatch.setattr(gen.time, "sleep", lambda s: None)
     monkeypatch.setattr(gen, "ATTEMPTS", 2)
     # первая задача: сбой, затем успех; вторая: два сбоя подряд -> ошибка
+    pauses = []
+    monkeypatch.setattr(gen.time, "sleep", pauses.append)
     client = FakeClient(replies=[TimeoutError("t1"), GOOD])
     run(tmp_path, client, "--limit", "1", "--workers", "1")
+    first = json.loads(next((tmp_path / "t").glob("*__g1.json")).read_text(encoding="utf-8"))
+    assert first["attempts"] == 2 and "error" not in first   # повтор записан
+    assert pauses == [gen.RETRY_PAUSE_S]
     client2 = FakeClient(replies=[TimeoutError("a"), TimeoutError("b")])
     summary = run(tmp_path, client2, "--limit", "1", "--workers", "1")
     assert summary["ok"] == 1 and summary["errors"] == {"api_error": 1}

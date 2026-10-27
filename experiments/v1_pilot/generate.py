@@ -31,7 +31,8 @@ DEFAULT_TEMPERATURE = 0.7
 DEFAULT_MAX_TOKENS = 16000                  # Включая скрытое рассуждение модели
 DEFAULT_BASE_URL = "https://api.duckduck.cloud/v1"
 REQUEST_TIMEOUT = 300
-ATTEMPTS = 3                                # Попытки на вызов при сетевых ошибках
+ATTEMPTS = 4                                # Попытки на вызов: сеть, лимиты (429), таймаут прокси
+RETRY_PAUSE_S = 20                          # Пауза × номер попытки: 20, 40, 60 с
 
 # Поля конфигурации, которые должны совпадать при продолжении запуска
 CONFIG_KEYS = ("model", "temperature", "max_tokens", "prompt_version", "levels", "sample_seed")
@@ -113,8 +114,11 @@ def make_client(base_url: str | None = None):
         raise SystemExit("Не найден LITELLM_API_KEY: задайте переменную окружения или строку "
                          "LITELLM_API_KEY=... в файле .env в корне репозитория")
     from openai import OpenAI
+    # max_retries=0: повторы делает только run_task и пишет их число в attempts;
+    # иначе клиент молча повторяет отказы и в файле остается attempts = 1
     return OpenAI(api_key=key, base_url=base_url or os.environ.get("LITELLM_BASE_URL",
-                                                                   DEFAULT_BASE_URL))
+                                                                   DEFAULT_BASE_URL),
+                  max_retries=0)
 
 
 def call_llm(client, messages: list[dict], config: dict) -> dict:
@@ -177,7 +181,8 @@ def parse_response(raw: str | None, finish_reason: str | None = None) -> dict:
 
 
 def run_task(task: Task, client, config: dict, run_dir: Path,
-             sleep: Callable[[float], None] = time.sleep) -> dict:
+             sleep: Callable[[float], None] | None = None) -> dict:
+    sleep = sleep or time.sleep
     instance = parse_sm_file(PSPLIB_INSTANCES / task.set_name / f"{task.instance}.sm")
     dsl = build_dsl(instance, LEVELS[task.level])
     messages = build_messages(dsl)
@@ -194,7 +199,7 @@ def run_task(task: Task, client, config: dict, run_dir: Path,
         except Exception as e:  # сеть, лимиты, таймаут прокси
             record["api_error"] = f"{type(e).__name__}: {e}"
             if attempt < ATTEMPTS:
-                sleep(5 * attempt)
+                sleep(RETRY_PAUSE_S * attempt)
     if "api_error" in record:
         record["error"] = f"api_error: {record.pop('api_error')}"
     record["attempts"] = attempt
