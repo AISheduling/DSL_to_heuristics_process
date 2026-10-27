@@ -33,6 +33,7 @@ DSL_to_heuristics_process/
 │   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
 │   ├── metrics.py                    # RPD / ARPD относительно эталона
 │   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS для SSGS
+│   ├── stats.py                      # Парный тест Уилкоксона, поправка Холма
 │   ├── dsl_builder.py                # DSL из инстанса: составы индикаторов none / network / resource / all
 │   └── llm_clients/                  # Скрипты генерации эвристик через LLM; prompt_v1.py — промпт В1
 ├── data/
@@ -46,7 +47,7 @@ DSL_to_heuristics_process/
 │   ├── literature-review/            # Обзор литературы (этап 0)
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
-│   ├── v1_pilot/                     # Эксперимент В1: выборка, генерация (generate.py), прогон (run_kernel.py)
+│   ├── v1_pilot/                     # Эксперимент В1: выборка, генерация, прогон в каркасе, оценка (evaluate.py)
 │   └── runners/                      # Прогон эвристик: runner_common.py + три точки входа
 ├── tests/                            # pytest: ядро, чекер, раннеры, пять постановок
 │   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
@@ -59,6 +60,7 @@ DSL_to_heuristics_process/
 │   ├── test_dsl_builder.py           # DSL из инстанса, DSLMeta.indicators, промпт В1
 │   ├── test_generation.py            # Генерация В1 на подменном клиенте: продолжение, ошибки
 │   ├── test_run_kernel.py            # Правила приоритета, общий модуль функций, прогон В1 в каркасе
+│   ├── test_evaluate.py              # Уилкоксон, Холм, отчет В1 на подготовленных результатах
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
 ├── pytest.ini
 ├── requirements-dev.txt
@@ -434,6 +436,8 @@ python -m pytest
     продолжение после обрыва, запрет продолжать с другими настройками, ошибки API и разбора.
 11. `tests/test_run_kernel.py` — правила приоритета (поздние сроки по CPM, допустимые
     расписания), общий модуль для двух функций LLM, прогон подготовленных генераций в каркасе.
+12. `tests/test_evaluate.py` — тест Уилкоксона и поправка Холма, отчет В1 (ARPD, доля
+    допустимых, сравнения, разбор по индикаторам) на подготовленных результатах.
 
 ---
 
@@ -617,6 +621,18 @@ python experiments/v1_pilot/run_kernel.py --run pilot-haiku
 базовые правила `src/priority_rules.py` (LFT, LST, MTS) и встроенное правило каркаса.
 Результат — `experiments/v1_pilot/results/<run>/`: `runs.csv`, `baselines.csv`, `summary.json`
 (`docs/adr/0003-v1-experiment-protocol.md`, п. 8).
+
+### Оценка (шаг 6)
+
+```bash
+python experiments/v1_pilot/evaluate.py --run pilot-haiku --price-in 0.10 --price-out 0.50
+```
+
+Доля допустимых генераций и ARPD к BKS и к CPM по уровням (а), (б) и правилам; парные
+сравнения по инстансам (а)–(б), (а)–LST, (б)–LST — тест Уилкоксона с поправкой Холма и
+порог δ = 0,5 п. п.; разбор по RS, OS, RF; стоимость генерации по ценам ($ за 1 млн токенов).
+Результат — `experiments/v1_pilot/results/<run>/report.md` и `report.json`
+(`docs/adr/0003-v1-experiment-protocol.md`, п. 9).
 
 ## Версии каркаса и данных
 

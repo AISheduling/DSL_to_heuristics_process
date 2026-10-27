@@ -1,0 +1,250 @@
+{
+  "run": "pilot-haiku",
+  "created": "2026-10-27T16:53:24",
+  "generation_config": {
+    "model": "anthropic/claude-haiku-5-5",
+    "temperature": 0.7,
+    "max_tokens": 16000,
+    "prompt_version": "v1-2026-10-27",
+    "levels": {
+      "a": "all",
+      "b": "none"
+    },
+    "gens": 3,
+    "pilot_only": true,
+    "sample_seed": 2026
+  },
+  "generation_commit": "bc3c0c7",
+  "instances": 30,
+  "generations_per_level": {
+    "a": 90,
+    "b": 90
+  },
+  "delta_pp": 0.5,
+  "alpha": 0.05,
+  "reference_rule": "LST",
+  "levels": {
+    "a": {
+      "runs": 90,
+      "valid": 90,
+      "share_valid": 1.0,
+      "arpd_bks": 8.900364679166877,
+      "arpd_cpm": 22.445420200615196,
+      "share_at_bks": 0.4,
+      "statuses": {
+        "ok": 90
+      },
+      "uses_indicators": 3
+    },
+    "b": {
+      "runs": 90,
+      "valid": 90,
+      "share_valid": 1.0,
+      "arpd_bks": 8.222239279915115,
+      "arpd_cpm": 21.69759753067233,
+      "share_at_bks": 0.43333333333333335,
+      "statuses": {
+        "ok": 90
+      },
+      "uses_indicators": 0
+    }
+  },
+  "rules": {
+    "LFT": {
+      "runs": 30,
+      "valid": 30,
+      "share_valid": 1.0,
+      "arpd_bks": 9.049045447433095,
+      "arpd_cpm": 22.467672514170985,
+      "share_at_bks": 0.4,
+      "statuses": {
+        "ok": 30
+      }
+    },
+    "LST": {
+      "runs": 30,
+      "valid": 30,
+      "share_valid": 1.0,
+      "arpd_bks": 8.399233505160652,
+      "arpd_cpm": 21.904215178373036,
+      "share_at_bks": 0.4,
+      "statuses": {
+        "ok": 30
+      }
+    },
+    "MTS": {
+      "runs": 30,
+      "valid": 30,
+      "share_valid": 1.0,
+      "arpd_bks": 9.791631763789415,
+      "arpd_cpm": 23.385204866209726,
+      "share_at_bks": 0.26666666666666666,
+      "statuses": {
+        "ok": 30
+      }
+    },
+    "builtin": {
+      "runs": 30,
+      "valid": 30,
+      "share_valid": 1.0,
+      "arpd_bks": 17.51794388427018,
+      "arpd_cpm": 31.906688419987688,
+      "share_at_bks": 0.16666666666666666,
+      "statuses": {
+        "ok": 30
+      }
+    }
+  },
+  "comparisons": {
+    "a vs b": {
+      "n": 30,
+      "mean_diff": 0.6781266666666668,
+      "median_diff": 0.0,
+      "x_better": 1,
+      "y_better": 5,
+      "ties": 24,
+      "statistic": 3.0,
+      "p_value": 0.11585149752593006,
+      "p_holm": 0.3475544925777902,
+      "significant": false,
+      "exceeds_delta": true
+    },
+    "a vs LST": {
+      "n": 30,
+      "mean_diff": 0.50113,
+      "median_diff": 0.0,
+      "x_better": 7,
+      "y_better": 5,
+      "ties": 18,
+      "statistic": 33.0,
+      "p_value": 0.6378701798979456,
+      "p_holm": 0.6378701798979456,
+      "significant": false,
+      "exceeds_delta": true
+    },
+    "b vs LST": {
+      "n": 30,
+      "mean_diff": -0.17699666666666672,
+      "median_diff": 0.0,
+      "x_better": 6,
+      "y_better": 3,
+      "ties": 21,
+      "statistic": 14.0,
+      "p_value": 0.3139380937749148,
+      "p_holm": 0.6278761875498295,
+      "significant": false,
+      "exceeds_delta": false
+    }
+  },
+  "breakdown": {
+    "rs": {
+      "низкий (≤ 0.298)": {
+        "n": 10,
+        "a": 18.92771,
+        "b": 18.52101,
+        "LST": 19.01131,
+        "a_minus_b": 0.4067000000000002,
+        "a_better": 1,
+        "b_better": 3
+      },
+      "средний (0.298; 0.512]": {
+        "n": 10,
+        "a": 6.14592,
+        "b": 4.5182400000000005,
+        "LST": 4.75527,
+        "a_minus_b": 1.62768,
+        "a_better": 0,
+        "b_better": 2
+      },
+      "высокий (> 0.512)": {
+        "n": 10,
+        "a": 1.6274499999999998,
+        "b": 1.6274499999999998,
+        "LST": 1.4311099999999999,
+        "a_minus_b": 0.0,
+        "a_better": 0,
+        "b_better": 0
+      }
+    },
+    "os": {
+      "низкий (≤ 0.283)": {
+        "n": 10,
+        "a": 12.16983,
+        "b": 11.670539999999999,
+        "LST": 12.19939,
+        "a_minus_b": 0.49929000000000023,
+        "a_better": 0,
+        "b_better": 3
+      },
+      "средний (0.283; 0.371]": {
+        "n": 10,
+        "a": 9.97848,
+        "b": 8.3508,
+        "LST": 8.3606,
+        "a_minus_b": 1.62768,
+        "a_better": 0,
+        "b_better": 2
+      },
+      "высокий (> 0.371)": {
+        "n": 10,
+        "a": 4.55277,
+        "b": 4.64536,
+        "LST": 4.6377,
+        "a_minus_b": -0.09259000000000003,
+        "a_better": 1,
+        "b_better": 0
+      }
+    },
+    "rf": {
+      "0.25": {
+        "n": 8,
+        "a": 7.6704875,
+        "b": 7.6704875,
+        "LST": 7.6704875,
+        "a_minus_b": -2.220446049250313e-16,
+        "a_better": 1,
+        "b_better": 1
+      },
+      "0.50": {
+        "n": 10,
+        "a": 9.31842,
+        "b": 9.00346,
+        "LST": 9.81212,
+        "a_minus_b": 0.3149600000000003,
+        "a_better": 0,
+        "b_better": 1
+      },
+      "0.75": {
+        "n": 8,
+        "a": 11.098075,
+        "b": 8.9488,
+        "LST": 9.018375,
+        "a_minus_b": 2.1492750000000003,
+        "a_better": 0,
+        "b_better": 3
+      },
+      "1.00": {
+        "n": 4,
+        "a": 5.919525,
+        "b": 5.919525,
+        "LST": 5.0862,
+        "a_minus_b": 0.0,
+        "a_better": 0,
+        "b_better": 0
+      }
+    }
+  },
+  "cost": {
+    "tokens": {
+      "prompt": 437754,
+      "completion": 702646,
+      "reasoning": 463625,
+      "total": 1140400
+    },
+    "calls": 180,
+    "usd": 0.3951,
+    "price_in_per_1m": 0.1,
+    "price_out_per_1m": 0.5,
+    "usd_per_call": 0.00219
+  }
+}
