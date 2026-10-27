@@ -26,7 +26,7 @@ from indicators import flat_indicators  # noqa: E402
 from psplib import instance_name, parse_sm_file, split_name  # noqa: E402
 from references import RCPLIB_FILE, load_rcplib, load_references  # noqa: E402
 
-SETS = {"j60": 48, "j120": 60}            # набор -> число комбинаций параметров
+SETS = {"j60": 48, "j120": 60}            # Набор -> число комбинаций параметров
 INSTANCES_PER_PARAM = 10
 OUTPUT = Path(__file__).resolve().parent / "sample.json"
 
@@ -71,6 +71,8 @@ def build_sample(seed: int, pilot_per_set: int, psplib_dir: Path) -> dict:
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument("--pilot", type=int, default=15, help="инстансов пилота из каждого набора")

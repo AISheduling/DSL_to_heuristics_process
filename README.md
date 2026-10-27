@@ -45,7 +45,7 @@ DSL_to_heuristics_process/
 │   ├── literature-review/            # Обзор литературы (этап 0)
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
-│   ├── v1_pilot/                     # Первый эксперимент В1: выборка J60/J120 (sample.json)
+│   ├── v1_pilot/                     # Первый эксперимент В1: выборка (sample.json), генерация (generate.py)
 │   └── runners/                      # Прогон эвристик: runner_common.py + три точки входа
 ├── tests/                            # pytest: ядро, чекер, раннеры, пять постановок
 │   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
@@ -56,6 +56,7 @@ DSL_to_heuristics_process/
 │   ├── test_references.py            # Эталоны: файлы решений, CPM = MPM-Time, BKS из двух источников
 │   ├── test_metrics.py               # RPD / ARPD, детерминированность выборки В1
 │   ├── test_dsl_builder.py           # DSL из инстанса, DSLMeta.indicators, промпт В1
+│   ├── test_generation.py            # Генерация В1 на подменном клиенте: продолжение, ошибки
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
 ├── pytest.ini
 ├── requirements-dev.txt
@@ -427,6 +428,8 @@ python -m pytest
 9. `tests/test_dsl_builder.py` — DSL из инстанса (составы, без утечки имени и эталонов,
    (а) и (б) различаются только блоком индикаторов), каркас читает DSL-словарь, промпт В1
    общий для обоих уровней и без полей весенних постановок.
+10. `tests/test_generation.py` — генерация В1 на подменном клиенте LLM: план 30 × 2 × 3,
+    продолжение после обрыва, запрет продолжать с другими настройками, ошибки API и разбора.
 
 ---
 
@@ -576,6 +579,26 @@ dsl = build_dsl(inst, "all")             # {"project_id": "RCPSP", ..., "project
 meta, state = build_state(dsl, inst)      # meta.indicators == {"n": 60, "os": 0.259, ...}
 run_schedule(state, default_select, default_allocate)
 ```
+
+### Генерация эвристик В1
+
+Нужен ключ прокси LLM: переменная окружения `LITELLM_API_KEY` (в git не попадает).
+
+```bash
+# план и пример промпта без вызовов API
+python experiments/v1_pilot/generate.py --run pilot-haiku --pilot-only --gens 3 --model anthropic/claude-haiku-5-5 --dry-run
+# проба: 2 вызова
+python experiments/v1_pilot/generate.py --run probe-haiku-2 --pilot-only --gens 3 --model anthropic/claude-haiku-5-5 --limit 2 --workers 1
+# пилот: 30 инстансов x 2 уровня x 3 генерации = 180 вызовов
+python experiments/v1_pilot/generate.py --run pilot-haiku --pilot-only --gens 3 --model anthropic/claude-haiku-5-5 --workers 4
+```
+
+Модель указывается обязательно (`--model`); каждой модели — свой `--run`.
+Каждый ответ — отдельный файл `experiments/v1_pilot/generations/<run>/<инстанс>__<уровень>__g<k>.json`.
+Повторный запуск с тем же `--run` продолжает с места обрыва; `--retry-errors`
+перезапрашивает файлы с ошибкой. Настройки (модель, `temperature` 0.7, `max_tokens` 16000,
+версия промпта, коммит) пишутся в `manifest.json`, итог — в `summary.json`
+(`docs/adr/0003-v1-experiment-protocol.md`, п. 7).
 
 ## Версии каркаса и данных
 
