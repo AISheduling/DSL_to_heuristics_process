@@ -120,5 +120,57 @@ def test_run_kernel_on_prepared_generations(tmp_path):
     assert summary["levels"]["a"]["valid"] == 1
     assert summary["levels"]["b"]["valid"] == 0 and summary["levels"]["b"]["runs"] == 2
     baselines = list(csv.DictReader(open(tmp_path / "res" / "t" / "baselines.csv", encoding="utf-8")))
-    assert {b["rule"] for b in baselines} == {"builtin", "LFT", "LST", "MTS"}
+    assert {b["rule"] for b in baselines} == {"builtin", "LFT", "LST", "MTS", "GP1"}
     assert all(b["status"] == "ok" and float(b["rpd_bks"]) >= 0 for b in baselines)
+
+
+# GP1 (luo2022, ур. 3) и PSGS для сверки со статьей
+
+def test_gp1_values_by_hand():
+    from types import SimpleNamespace as Job
+    import math
+    from priority_rules import gp1, gp1_values
+    # 1 -> 2 -> 3, у 2 спрос 4, у 3 спрос 2; длительности 0, 3, 2
+    jobs = {1: Job(duration=0, predecessors=[], successors=[2], resources_required={}),
+            2: Job(duration=3, predecessors=[1], successors=[3], resources_required={1: 4}),
+            3: Job(duration=2, predecessors=[2], successors=[], resources_required={1: 2})}
+    v = gp1_values(jobs)
+    # терминалы, нормированные делением на максимум по проекту
+    lf = {1: 0 / 5, 2: 3 / 5, 3: 5 / 5}
+    ls = {1: 0 / 3, 2: 0 / 3, 3: 3 / 3}
+    mts = {1: 2 / 2, 2: 1 / 2, 3: 0 / 2}
+    gres = {1: 0 / 4, 2: 4 / 4, 3: 2 / 4}
+    gcrwc = {1: 12 / 12, 2: 4 / 12, 3: 0 / 12}   # d_j · Σr_j по прямым преемникам
+    for j in jobs:
+        expected = (lf[j] + ((lf[j] + (ls[j] - gres[j])) - mts[j])) / (gcrwc[j] + math.cos(ls[j])) - gres[j]
+        assert v[j] == pytest.approx(expected), j
+    assert gp1([2, 3], jobs, None, None) == min((2, 3), key=lambda j: v[j])
+
+
+PSPLIB_J30 = ROOT / "data" / "psplib" / "instances" / "j30"
+
+
+@pytest.mark.skipif(not PSPLIB_J30.exists(), reason="PSPLIB не скачан (data/psplib/SOURCES.md)")
+def test_psgs_reproduces_luo2022_table14_for_lft_lst():
+    # Лучшее из SSGS и PSGS на J30, отклонение от нижней границы: LFT 3,32 %, LST 3,42 %
+    # в табл. 14 luo2022 (их тест — J30 без 96 обучающих инстансов, у нас — весь J30)
+    from priority_rules import latest_times, lft, lst
+    from psgs import parallel_schedule
+    from references import load_references
+    from metrics import rpd
+    from psplib import iter_set
+    refs = load_references("j30", use_rcplib=False)
+    devs = {"LFT": [], "LST": []}
+    for name, inst in iter_set(PSPLIB_J30):
+        for rule, select, key in (("LFT", lft, "lf"), ("LST", lst, "ls")):
+            _, state = build_state(build_dsl(inst, "none"), inst)
+            serial = run_schedule(state, select, default_allocate)["objective"]["primary"]
+            _, state = build_state(build_dsl(inst, "none"), inst)
+            pr = latest_times(state.jobs)[key]
+            starts = parallel_schedule(state.jobs, {k: r.capacity for k, r in state.resources.items()},
+                                       lambda j, pr=pr: (pr[j], j))
+            check = validate_schedule(inst, starts)
+            assert check["status"] == "valid", name
+            devs[rule].append(rpd(min(serial, check["makespan"]), refs[name].lb))
+    assert sum(devs["LFT"]) / 480 == pytest.approx(3.32, abs=0.15)
+    assert sum(devs["LST"]) / 480 == pytest.approx(3.42, abs=0.15)

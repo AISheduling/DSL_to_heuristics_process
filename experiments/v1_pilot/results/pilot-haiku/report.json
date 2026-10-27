@@ -1,6 +1,6 @@
 {
   "run": "pilot-haiku",
-  "created": "2026-10-27T16:53:24",
+  "created": "2026-10-27T17:23:39",
   "generation_config": {
     "model": "anthropic/claude-haiku-5-5",
     "temperature": 0.7,
@@ -50,6 +50,17 @@
     }
   },
   "rules": {
+    "GP1": {
+      "runs": 30,
+      "valid": 30,
+      "share_valid": 1.0,
+      "arpd_bks": 11.249970250623655,
+      "arpd_cpm": 24.750879829333922,
+      "share_at_bks": 0.26666666666666666,
+      "statuses": {
+        "ok": 30
+      }
+    },
     "LFT": {
       "runs": 30,
       "valid": 30,

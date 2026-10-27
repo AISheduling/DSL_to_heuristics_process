@@ -32,7 +32,8 @@ DSL_to_heuristics_process/
 │   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
 │   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
 │   ├── metrics.py                    # RPD / ARPD относительно эталона
-│   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS для SSGS
+│   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS / GP1 для SSGS
+│   ├── psgs.py                       # Параллельная схема — только для сверки правил со статьями
 │   ├── stats.py                      # Парный тест Уилкоксона, поправка Холма
 │   ├── dsl_builder.py                # DSL из инстанса: составы индикаторов none / network / resource / all
 │   └── llm_clients/                  # Скрипты генерации эвристик через LLM; prompt_v1.py — промпт В1
@@ -435,7 +436,8 @@ python -m pytest
 10. `tests/test_generation.py` — генерация В1 на подменном клиенте LLM: план 30 × 2 × 3,
     продолжение после обрыва, запрет продолжать с другими настройками, ошибки API и разбора.
 11. `tests/test_run_kernel.py` — правила приоритета (поздние сроки по CPM, допустимые
-    расписания), общий модуль для двух функций LLM, прогон подготовленных генераций в каркасе.
+    расписания), общий модуль для двух функций LLM, прогон подготовленных генераций в каркасе,
+    GP1 на ручном примере, сверка LFT/LST (лучшее из SSGS и PSGS) с табл. 14 luo2022 на J30.
 12. `tests/test_evaluate.py` — тест Уилкоксона и поправка Холма, отчет В1 (ARPD, доля
     допустимых, сравнения, разбор по индикаторам) на подготовленных результатах.
 
@@ -618,7 +620,9 @@ python experiments/v1_pilot/run_kernel.py --run pilot-haiku
 построение SSGS в отдельном процессе (таймаут 30 с), makespan — из независимого чекера.
 Код `select_job_fn` и `allocate_fn` исполняется в одном модуле, чтобы общие объявления
 (кэш, вспомогательные функции) были видны обеим функциям. На тех же инстансах считаются
-базовые правила `src/priority_rules.py` (LFT, LST, MTS) и встроенное правило каркаса.
+базовые правила `src/priority_rules.py` (LFT, LST, MTS, GP1 из luo2022) и встроенное
+правило каркаса. GP1 реализован по формуле статьи, но ее число не воспроизводит
+(ADR 0003, п. 8).
 Результат — `experiments/v1_pilot/results/<run>/`: `runs.csv`, `baselines.csv`, `summary.json`
 (`docs/adr/0003-v1-experiment-protocol.md`, п. 8).
 
