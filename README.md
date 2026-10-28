@@ -601,7 +601,15 @@ python experiments/v1_pilot/generate.py --run pilot-haiku --pilot-only --gens 3 
 python experiments/v1_pilot/generate.py --run probe-haiku-2 --pilot-only --gens 3 --model anthropic/claude-haiku-5-5 --limit 2 --workers 1
 # пилот: 30 инстансов x 2 уровня x 3 генерации = 180 вызовов
 python experiments/v1_pilot/generate.py --run pilot-haiku --pilot-only --gens 3 --model anthropic/claude-haiku-5-5 --workers 4
+# полный запуск: уровень (а) берется из full-haiku, уровень (б) генерируется заново
+python experiments/v1_pilot/generate.py --run full-haiku-2 --gens 5 --model anthropic/claude-haiku-5-5 --workers 2 --reuse a=full-haiku
 ```
+
+Кэш ответов прокси LiteLLM отключается в каждом запросе (`no-cache`, `no-store`): иначе
+одинаковые запросы уровня (б) получают сохраненный ответ. В итоге запуска `fast_replies`
+(ответ быстрее 2 с) и `repeated_replies` (ответ слово в слово совпал с другим ответом того же
+уровня) должны быть около нуля. `--reuse УРОВЕНЬ=ЗАПУСК` копирует готовые генерации уровня
+из запуска с той же моделью, промптом и настройками; в файлах остается `copied_from`.
 
 Модель указывается обязательно (`--model`); каждой модели — свой `--run`.
 Каждый ответ — отдельный файл `experiments/v1_pilot/generations/<run>/<инстанс>__<уровень>__g<k>.json`.
@@ -636,8 +644,7 @@ python experiments/v1_pilot/evaluate.py --run pilot-haiku --price-in 0.10 --pric
 сравнения по инстансам (а)–(б), (а)–LST, (б)–LST — тест Уилкоксона с поправкой Холма и
 порог δ = 0,5 п. п.; разбор по RS, OS, RF; стоимость генерации — фактическое списание
 (`--spent-usd`, Spend ключа в LiteLLM за запуск) и оценка по ценам ($ за 1 млн токенов).
-Прокси списывает примерно вчетверо меньше оценки по ценам ключа, поэтому основное число —
-списание.
+Без кэша прокси списание совпадает с оценкой по ценам ключа; основное число — списание.
 Результат — `experiments/v1_pilot/results/<run>/report.md` и `report.json`
 (`docs/adr/0003-v1-experiment-protocol.md`, п. 9).
 

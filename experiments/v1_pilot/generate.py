@@ -33,9 +33,17 @@ DEFAULT_BASE_URL = "https://api.duckduck.cloud/v1"
 REQUEST_TIMEOUT = 300
 ATTEMPTS = 4                                # Попытки на вызов: сеть, лимиты (429), таймаут прокси
 RETRY_PAUSE_S = 20                          # Пауза × номер попытки: 20, 40, 60 с
+# Кэш ответов прокси LiteLLM: одинаковый запрос иначе получает сохраненный ответ, хотя
+# temperature > 0 (запросы уровня (б) одинаковы для всех инстансов). no-cache — не читать
+# кэш, no-store — не записывать.
+PROXY_CACHE = {"no-cache": True, "no-store": True}
+FAST_REPLY_S = 2.0                          # Ответ быстрее — подозрение на кэш прокси
 
 # Поля конфигурации, которые должны совпадать при продолжении запуска
-CONFIG_KEYS = ("model", "temperature", "max_tokens", "prompt_version", "levels", "sample_seed")
+CONFIG_KEYS = ("model", "temperature", "max_tokens", "prompt_version", "levels", "sample_seed",
+               "proxy_cache")
+# Поля, которые должны совпадать у запуска, из которого копируется уровень (--reuse)
+REUSE_KEYS = ("model", "temperature", "max_tokens", "prompt_version", "sample_seed")
 
 
 @dataclass(frozen=True)
@@ -127,6 +135,7 @@ def call_llm(client, messages: list[dict], config: dict) -> dict:
         model=config["model"], messages=messages, temperature=config["temperature"],
         max_tokens=config["max_tokens"], n=1, timeout=REQUEST_TIMEOUT,
         response_format={"type": "json_object"},
+        extra_body={"cache": PROXY_CACHE},
     )
     raw = response.choices[0].message.content
     usage = response.usage
@@ -210,7 +219,14 @@ def run_task(task: Task, client, config: dict, run_dir: Path,
 
 
 def summarize(run_dir: Path, tasks: list[Task]) -> dict:
+    """
+    Итог запуска. fast_replies и repeated_replies — признаки кэша прокси: ответ быстрее
+    FAST_REPLY_S и ответ, слово в слово совпавший с другим ответом того же уровня.
+    """
     done, errors, tokens = 0, {}, {"prompt": 0, "completion": 0, "reasoning": 0, "total": 0}
+    fast, copied = 0, 0
+    seen: dict[str, set[str]] = {}
+    repeated = 0
     for t in tasks:
         path = run_dir / t.filename
         if not path.exists():
@@ -221,10 +237,42 @@ def summarize(run_dir: Path, tasks: list[Task]) -> dict:
             errors[kind] = errors.get(kind, 0) + 1
         else:
             done += 1
+            fast += rec.get("latency_s", FAST_REPLY_S) < FAST_REPLY_S
+            raw = rec.get("raw") or ""
+            repeated += raw in seen.setdefault(t.level, set())
+            seen[t.level].add(raw)
+        copied += "copied_from" in rec
         for k in tokens:
             tokens[k] += (rec.get("tokens") or {}).get(k) or 0
     return {"tasks": len(tasks), "ok": done, "errors": errors,
-            "missing": len(tasks) - done - sum(errors.values()), "tokens": tokens}
+            "missing": len(tasks) - done - sum(errors.values()), "tokens": tokens,
+            "copied": copied, "fast_replies": fast, "repeated_replies": repeated}
+
+
+def reuse_level(tasks: list[Task], run_dir: Path, source_dir: Path, level: str, config: dict) -> int:
+    """
+    Копирует готовые генерации уровня level из другого запуска с теми же моделью,
+    промптом и настройками (кроме кэша прокси). В файл пишется copied_from.
+    """
+    manifest = source_dir / "manifest.json"
+    if not manifest.exists():
+        raise SystemExit(f"--reuse: нет {manifest}")
+    src = json.loads(manifest.read_text(encoding="utf-8"))["config"]
+    diff = {k: (src.get(k), config[k]) for k in REUSE_KEYS if src.get(k) != config[k]}
+    if diff or level not in src.get("levels", {}):
+        raise SystemExit(f"--reuse: запуск {source_dir.name} несовместим: {diff or 'нет уровня ' + level}")
+    copied = 0
+    for t in tasks:
+        if t.level != level or (run_dir / t.filename).exists():
+            continue
+        path = source_dir / t.filename
+        if not path.exists():
+            raise SystemExit(f"--reuse: в {source_dir.name} нет {t.filename}")
+        rec = json.loads(path.read_text(encoding="utf-8"))
+        rec["copied_from"] = source_dir.name
+        _write_json(run_dir / t.filename, rec)
+        copied += 1
+    return copied
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -246,6 +294,8 @@ def main(argv: list[str] | None = None, client_factory: Callable = make_client) 
     p.add_argument("--workers", type=int, default=8, help="параллельных запросов")
     p.add_argument("--limit", type=int, help="сделать не больше N вызовов (проба)")
     p.add_argument("--retry-errors", action="store_true", help="перезапросить файлы с ошибкой")
+    p.add_argument("--reuse", nargs="+", default=[], metavar="УРОВЕНЬ=ЗАПУСК",
+                   help="взять готовые генерации уровня из другого запуска, например a=full-haiku")
     p.add_argument("--dry-run", action="store_true", help="показать план и промпт, без вызовов API")
     p.add_argument("--out", type=Path, default=GENERATIONS_DIR)
     args = p.parse_args(argv)
@@ -255,8 +305,16 @@ def main(argv: list[str] | None = None, client_factory: Callable = make_client) 
     run_dir = args.out / args.run
     config = {"model": args.model, "temperature": args.temperature, "max_tokens": args.max_tokens,
               "prompt_version": PROMPT_VERSION, "levels": {k: LEVELS[k] for k in args.levels},
-              "gens": args.gens, "pilot_only": args.pilot_only, "sample_seed": sample["seed"]}
+              "gens": args.gens, "pilot_only": args.pilot_only, "sample_seed": sample["seed"],
+              "proxy_cache": PROXY_CACHE}
+    reuse = dict(r.split("=", 1) for r in args.reuse)
+    if set(reuse) - set(args.levels):
+        raise SystemExit(f"--reuse: уровни {sorted(set(reuse) - set(args.levels))} не входят в --levels")
+    if reuse:
+        config["reused"] = reuse
+    reused_tasks = {t for t in tasks if t.level in reuse}
     todo = pending(tasks, run_dir, args.retry_errors) if run_dir.exists() else list(tasks)
+    todo = [t for t in todo if t not in reused_tasks]
     if args.limit is not None:
         todo = todo[:args.limit]
     print(f"{args.run}: задач {len(tasks)}, к выполнению {len(todo)} "
@@ -270,6 +328,9 @@ def main(argv: list[str] | None = None, client_factory: Callable = make_client) 
         return {"tasks": len(tasks), "todo": len(todo)}
 
     prepare_run_dir(run_dir, config)
+    for level, source in reuse.items():
+        n = reuse_level(tasks, run_dir, args.out / source, level, config)
+        print(f"Уровень {level}: скопировано из {source} {n} генераций")
     if todo:
         client = client_factory()
         lock = threading.Lock()
@@ -289,6 +350,9 @@ def main(argv: list[str] | None = None, client_factory: Callable = make_client) 
     _write_json(run_dir / "summary.json", {"updated": datetime.now().isoformat(timespec="seconds"),
                                            **summary})
     print(f"Итог: {summary}")
+    if summary["fast_replies"] or summary["repeated_replies"]:
+        print(f"ВНИМАНИЕ: ответов быстрее {FAST_REPLY_S} с — {summary['fast_replies']}, повторяющихся — "
+              f"{summary['repeated_replies']}; похоже на кэш прокси (ADR 0003, п. 7)")
     return summary
 
 

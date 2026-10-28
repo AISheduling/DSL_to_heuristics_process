@@ -172,6 +172,54 @@ def test_truncated_errors_in_summary(tmp_path):
     assert summary["errors"] == {"truncated": 2}
 
 
+def test_proxy_cache_is_bypassed_and_repeats_are_counted(tmp_path):
+    client = FakeClient()
+    summary = run(tmp_path, client, "--limit", "4", "--workers", "1")
+    assert client.calls[0]["extra_body"] == {"cache": {"no-cache": True, "no-store": True}}
+    # FakeClient отвечает одним и тем же текстом: 4 задачи уровня a, повторы — 3 последних
+    assert summary["repeated_replies"] == 3 and summary["fast_replies"] == 4
+    manifest = json.loads((tmp_path / "t" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["config"]["proxy_cache"] == gen.PROXY_CACHE
+
+
+def test_resume_of_run_made_with_cache_is_refused(tmp_path):
+    run(tmp_path, FakeClient(), "--limit", "1")
+    path = tmp_path / "t" / "manifest.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    del manifest["config"]["proxy_cache"]          # Запуски до отключения кэша
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(SystemExit, match="настройки отличаются"):
+        run(tmp_path, FakeClient())
+
+
+def _main(tmp_path, client, name, *extra):
+    return gen.main(["--run", name, "--pilot-only", "--gens", "1", "--workers", "2", "--model", MODEL,
+                     "--out", str(tmp_path), *extra], client_factory=lambda: client)
+
+
+def test_reuse_copies_level_and_generates_the_rest(tmp_path):
+    _main(tmp_path, FakeClient(), "src")
+    client = FakeClient()
+    summary = _main(tmp_path, client, "new", "--reuse", "a=src")
+    assert len(client.calls) == 30                              # Только уровень без метаданных
+    assert summary["ok"] == 60 and summary["copied"] == 30
+    rec = json.loads(next((tmp_path / "new").glob("*__a__g1.json")).read_text(encoding="utf-8"))
+    assert rec["copied_from"] == "src" and rec["level"] == "a"
+    manifest = json.loads((tmp_path / "new" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["config"]["reused"] == {"a": "src"}
+    # Повторный запуск ничего не копирует и не вызывает заново
+    client2 = FakeClient()
+    assert _main(tmp_path, client2, "new", "--reuse", "a=src")["ok"] == 60 and not client2.calls
+
+
+def test_reuse_from_incompatible_run_is_refused(tmp_path):
+    _main(tmp_path, FakeClient(), "src", "--temperature", "0.2")
+    with pytest.raises(SystemExit, match="несовместим"):
+        _main(tmp_path, FakeClient(), "new", "--reuse", "a=src")
+    with pytest.raises(SystemExit, match="не входят в --levels"):
+        _main(tmp_path, FakeClient(), "new2", "--levels", "b", "--reuse", "a=src")
+
+
 def test_dry_run_makes_no_calls(tmp_path):
     def factory():
         raise AssertionError("dry-run не должен создавать клиента")
