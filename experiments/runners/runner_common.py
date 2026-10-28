@@ -1,19 +1,3 @@
-"""
-Общий слой трёх раннеров (Text, DSL, Skeleton).
-
-Единые статусы для всех подходов (доли считаются от всех генераций):
-  generation_error  LLM не вернула код (в записи run есть "error" или нет кода)
-  compile_error     код не компилируется / нет нужной функции
-  runtime_error     исключение при выполнении
-  timeout           превышен общий TIMEOUT_SECONDS (один для всех подходов)
-  no_schedule       выполнение завершилось, но расписание из вывода не извлекается
-  infeasible        чекер нашёл нарушения (предшествование, мощности, бюджет, группы)
-  incomplete        расписание допустимо, но не все работы запланированы
-  ok                полное допустимое расписание; качество — только из чекера
-
-Качество (primary / makespan) берётся исключительно из schedule_checker,
-а не из вывода сгенерированного кода и не из каркаса.
-"""
 from __future__ import annotations
 
 import json
@@ -61,7 +45,7 @@ ROW_COLUMNS = [
 ]
 
 
-# --- извлечение расписания из вывода полного решателя -------------------------
+# Извлечение расписания из вывода полного решателя
 
 _START_KEYS = ("start", "start_time", "begin", "s")
 _ID_KEYS = ("id", "job_id", "job", "activity", "activity_id")
@@ -143,7 +127,7 @@ def _is_job_key(key: Any) -> bool:
     return False
 
 
-# --- оценка через чекер -------------------------------------------------------
+# Оценка через чекер
 
 _CHECKER_TO_STATUS = {"valid": "ok", "incomplete": "incomplete", "invalid": "infeasible",
                       "empty": "no_schedule"}
@@ -176,16 +160,28 @@ def budget_limit_from_dsl(dsl_path: Path | None) -> dict | None:
     return (sec.get("parameters") or {}).get("budget_limit")
 
 
-# --- выполнение в отдельном процессе с таймаутом -------------------------------
+# Выполнение в отдельном процессе с таймаутом
 
-def _compile(code: str, fn_name: str):
+def _compile(code: str, fn_name: str, ns: types.ModuleType | None = None):
+    """Исполняет код в модуле ns (новом, если не задан) и возвращает функцию fn_name."""
     clean = "\n".join(ln for ln in code.splitlines() if not ln.strip().startswith("from __future__"))
-    ns = types.ModuleType("heuristic_module")
+    if ns is None:
+        ns = types.ModuleType("heuristic_module")
     exec(compile(clean, f"<llm:{fn_name}>", "exec"), ns.__dict__)  # noqa: S102
     fn = getattr(ns, fn_name, None)
     if fn is None:
         raise ValueError(f"function '{fn_name}' not found in generated code")
     return fn
+
+
+def compile_pair(select_code: str, allocate_code: str, shared_namespace: bool = False):
+    """
+    select_job_fn и allocate_fn. shared_namespace=True (эксперимент В1, ADR 0003): оба кода
+    исполняются в одном модуле — сначала select, затем allocate, — так что общие объявления
+    (кэш, вспомогательные функции) видны обеим функциям. По умолчанию — раздельно, как весной.
+    """
+    ns = types.ModuleType("heuristic_module") if shared_namespace else None
+    return _compile(select_code, "select_job_fn", ns), _compile(allocate_code, "allocate_fn", ns)
 
 
 def _worker_full(code: str, jobs, resources, q: Queue):
@@ -203,17 +199,16 @@ def _worker_full(code: str, jobs, resources, q: Queue):
     q.put(("done", repr(result)[:300], schedule))
 
 
-def _worker_skeleton(select_code: str, allocate_code: str, dsl_path: str, instance: dict,
-                     scheme: str, q: Queue):
+def _worker_skeleton(select_code: str, allocate_code: str, dsl: str | dict, instance: dict,
+                     scheme: str, shared_namespace: bool, q: Queue):
     try:
         import scheduler_skeleton as sched
-        select_fn = _compile(select_code, "select_job_fn")
-        allocate_fn = _compile(allocate_code, "allocate_fn")
+        select_fn, allocate_fn = compile_pair(select_code, allocate_code, shared_namespace)
     except Exception:
         q.put(("compile_error", traceback.format_exc(), None))
         return
     try:
-        meta, state = sched.build_state(dsl_path, instance)
+        meta, state = sched.build_state(dsl, instance)
         result = sched.run_schedule(state, select_fn, allocate_fn, scheme=scheme)
     except Exception:
         q.put(("runtime_error", traceback.format_exc(), None))
@@ -263,13 +258,19 @@ def run_full_solver(code: str, instance: dict, *, timeout: float = TIMEOUT_SECON
     return ev
 
 
-def run_skeleton(select_code: str, allocate_code: str, dsl_path: str | Path, instance: dict, *,
+def run_skeleton(select_code: str, allocate_code: str, dsl: str | Path | dict, instance: dict, *,
                  timeout: float = TIMEOUT_SECONDS, scheme: str = "ssgs",
-                 budget_limit: dict | None = None, objective: str | None = None) -> dict:
-    """Две функции в каркасе: компиляция, run_schedule с таймаутом, чекер поверх каркаса."""
+                 budget_limit: dict | None = None, objective: str | None = None,
+                 shared_namespace: bool = False) -> dict:
+    """
+    Две функции в каркасе: компиляция, run_schedule с таймаутом, чекер поверх каркаса.
+    dsl — путь к DSL-файлу (весенние постановки) или DSL-словарь (src/dsl_builder.py).
+    shared_namespace — оба кода в одном модуле (см. compile_pair).
+    """
     t0 = time.perf_counter()
     kind, info, result = _run_with_timeout(
-        _worker_skeleton, (select_code, allocate_code, str(dsl_path), instance, scheme), timeout)
+        _worker_skeleton, (select_code, allocate_code, dsl if isinstance(dsl, dict) else str(dsl),
+                           instance, scheme, shared_namespace), timeout)
     elapsed = round(time.perf_counter() - t0, 3)
     if kind != "done":
         return {"status": kind, "primary": None, "makespan": None, "violations": [],
@@ -293,7 +294,7 @@ def run_skeleton(select_code: str, allocate_code: str, dsl_path: str | Path, ins
     return ev
 
 
-# --- сбор запусков из experiments/ --------------------------------------------
+# Сбор запусков из experiments/
 
 def load_json(path: Path) -> Any:
     with open(path, encoding="utf-8") as f:
@@ -322,7 +323,7 @@ def generation_error_row(run: dict) -> str | None:
     return None
 
 
-# --- сводка ---------------------------------------------------------------------
+# Сводка
 
 def summarize(rows: list[dict]) -> dict[str, dict]:
     """Доли статусов по кейсам от всех генераций; качество — по строкам ok."""
@@ -355,7 +356,7 @@ def print_summary(rows: list[dict]):
         print(line)
 
 
-# --- сохранение ------------------------------------------------------------------
+# Сохранение
 
 def save_json(rows: list[dict], path: Path):
     with open(path, "w", encoding="utf-8") as f:

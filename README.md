@@ -29,8 +29,14 @@ DSL_to_heuristics_process/
 │   ├── schedule_checker.py           # Независимый чекер расписаний (не импортирует каркас)
 │   ├── calculate_metrics.py          # Метрики графов весенних DSL (legacy, см. ADR 0002)
 │   ├── indicators.py                 # 12 стандартных индикаторов проекта (guo2021) + доп. признаки
-│   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed
-│   └── llm_clients/                  # Скрипты генерации эвристик через LLM
+│   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
+│   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
+│   ├── metrics.py                    # RPD / ARPD относительно эталона
+│   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS / GP1 для SSGS
+│   ├── psgs.py                       # Параллельная схема — только для сверки правил со статьями
+│   ├── stats.py                      # Парный тест Уилкоксона, поправка Холма
+│   ├── dsl_builder.py                # DSL из инстанса: составы индикаторов none / network / resource / all
+│   └── llm_clients/                  # Скрипты генерации эвристик через LLM; prompt_v1.py — промпт В1
 ├── data/
 │   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
 │   ├── processed/                    # Готовые инстансы задач (JSON)
@@ -38,10 +44,11 @@ DSL_to_heuristics_process/
 │   ├── rcplib/                       # RCPLIB: индикаторы и эталоны (не в git, см. SOURCES.md)
 │   └── references/                   # DSL и текстовые описания кейсов
 ├── docs/
-│   ├── adr/                          # Архитектурные решения (0001 — статусы, чекер, allocate_fn; 0002 — индикаторы)
+│   ├── adr/                          # Архитектурные решения (0001 — статусы, чекер, allocate_fn; 0002 — индикаторы; 0003 — протокол В1)
 │   ├── literature-review/            # Обзор литературы (этап 0)
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
+│   ├── v1_pilot/                     # Эксперимент В1: выборка, генерация, прогон в каркасе, оценка (evaluate.py)
 │   └── runners/                      # Прогон эвристик: runner_common.py + три точки входа
 ├── tests/                            # pytest: ядро, чекер, раннеры, пять постановок
 │   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
@@ -49,6 +56,12 @@ DSL_to_heuristics_process/
 │   ├── test_runner_common.py         # Статусы, извлечение расписания, таймаут
 │   ├── test_psplib.py                # Парсер .sm: j301_1 = Case 1, отказ на чужих форматах
 │   ├── test_indicators.py            # Индикаторы: ручные примеры, инварианты, guo2021, RCPLIB
+│   ├── test_references.py            # Эталоны: файлы решений, CPM = MPM-Time, BKS из двух источников
+│   ├── test_metrics.py               # RPD / ARPD, детерминированность выборки В1
+│   ├── test_dsl_builder.py           # DSL из инстанса, DSLMeta.indicators, промпт В1
+│   ├── test_generation.py            # Генерация В1 на подменном клиенте: продолжение, ошибки
+│   ├── test_run_kernel.py            # Правила приоритета, общий модуль функций, прогон В1 в каркасе
+│   ├── test_evaluate.py              # Уилкоксон, Холм, отчет В1 на подготовленных результатах
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
 ├── pytest.ini
 ├── requirements-dev.txt
@@ -413,6 +426,20 @@ python -m pytest
    (фиктивные работы, перенумерация), min/max по J30/J60/J120 против табл. 3–4 guo2021
    и построчная сверка 11 индикаторов с RCPLIB на всех 1560 инстансах. Сверки пропускаются,
    если PSPLIB или RCPLIB не скачаны (`data/psplib/SOURCES.md`, `data/rcplib/SOURCES.md`).
+7. `tests/test_references.py` — файлы решений PSPLIB, CPM совпадает с MPM-Time из `.sm`,
+   BKS — лучшее из PSPLIB и RCPLIB, противоречивые границы отклоняются.
+8. `tests/test_metrics.py` — RPD / ARPD и выборка В1 (детерминирована, `sample.json`
+   соответствует правилу отбора).
+9. `tests/test_dsl_builder.py` — DSL из инстанса (составы, без утечки имени и эталонов,
+   (а) и (б) различаются только блоком индикаторов), каркас читает DSL-словарь, промпт В1
+   общий для обоих уровней и без полей весенних постановок.
+10. `tests/test_generation.py` — генерация В1 на подменном клиенте LLM: план 30 × 2 × 3,
+    продолжение после обрыва, запрет продолжать с другими настройками, ошибки API и разбора.
+11. `tests/test_run_kernel.py` — правила приоритета (поздние сроки по CPM, допустимые
+    расписания), общий модуль для двух функций LLM, прогон подготовленных генераций в каркасе,
+    GP1 на ручном примере, сверка LFT/LST (лучшее из SSGS и PSGS) с табл. 14 luo2022 на J30.
+12. `tests/test_evaluate.py` — тест Уилкоксона и поправка Холма, отчет В1 (ARPD, доля
+    допустимых, сравнения, разбор по индикаторам) на подготовленных результатах.
 
 ---
 
@@ -519,6 +546,107 @@ from indicators import compute_indicators
 inst = parse_sm_file("data/psplib/instances/j30/j301_1.sm")
 compute_indicators(inst)  # {"standard", "network", "resource", "extended"}
 ```
+
+### Эталоны и метрика
+
+`src/references.py` собирает для каждого инстанса эталоны: BKS — минимум верхних границ
+из файлов решений PSPLIB и RCPLIB v6 (`bks_source` — откуда), нижнюю границу — максимум
+из CPM, `lb` PSPLIB и `LB-lit` RCPLIB, флаг `optimal` (LB = BKS). Без RCPLIB работает
+только по файлам PSPLIB. `src/metrics.py` — RPD = 100 · (makespan − BKS) / BKS и ARPD;
+прогоны без допустимого расписания в ARPD не входят и считаются отдельно
+(`docs/adr/0003-v1-experiment-protocol.md`).
+
+```python
+from references import load_references
+from metrics import rpd
+refs = load_references("j60")           # {"j601_1": Reference(cpm, lb, bks, bks_source, optimal)}
+rpd(72, refs["j601_1"].bks)
+```
+
+### Выборка первого эксперимента В1
+
+```bash
+python experiments/v1_pilot/make_sample.py   # --seed 2026 --pilot 15 по умолчанию
+```
+
+По одному инстансу на каждую комбинацию параметров ProGen (J60 — 48, J120 — 60, всего 108),
+пилот — 15 случайных инстансов из каждого набора. В `experiments/v1_pilot/sample.json`
+для каждого инстанса записаны эталоны и 12 индикаторов. Файл хранится в git; тест
+`tests/test_metrics.py` проверяет, что он соответствует правилу отбора.
+
+### DSL из инстанса и промпт В1
+
+`src/dsl_builder.py` строит DSL для одномодового RCPSP прямо из инстанса, без рукописных
+файлов. Составы метаданных: `none` (без индикаторов, уровень (б) В1), `all` (12 индикаторов,
+уровень (а)), `network` и `resource` (для В2). Каркас принимает DSL-словарь и отдает
+индикаторы функциям эвристики как `meta.indicators`. Промпт В1 — `src/llm_clients/prompt_v1.py`:
+общий для обоих уровней, различается только DSL (`docs/adr/0003-v1-experiment-protocol.md`).
+
+```python
+from dsl_builder import build_dsl
+from scheduler_skeleton import build_state, run_schedule, default_select, default_allocate
+dsl = build_dsl(inst, "all")             # {"project_id": "RCPSP", ..., "project_indicators": {...}}
+meta, state = build_state(dsl, inst)      # meta.indicators == {"n": 60, "os": 0.259, ...}
+run_schedule(state, default_select, default_allocate)
+```
+
+### Генерация эвристик В1
+
+Нужен ключ прокси LLM: переменная окружения `LITELLM_API_KEY` (в git не попадает).
+
+```bash
+# план и пример промпта без вызовов API
+python experiments/v1_pilot/generate.py --run pilot-haiku --pilot-only --gens 3 --model anthropic/claude-haiku-5-5 --dry-run
+# проба: 2 вызова
+python experiments/v1_pilot/generate.py --run probe-haiku-2 --pilot-only --gens 3 --model anthropic/claude-haiku-5-5 --limit 2 --workers 1
+# пилот: 30 инстансов x 2 уровня x 3 генерации = 180 вызовов
+python experiments/v1_pilot/generate.py --run pilot-haiku --pilot-only --gens 3 --model anthropic/claude-haiku-5-5 --workers 4
+# полный запуск: уровень (а) берется из full-haiku, уровень (б) генерируется заново
+python experiments/v1_pilot/generate.py --run full-haiku-2 --gens 5 --model anthropic/claude-haiku-5-5 --workers 2 --reuse a=full-haiku
+```
+
+Кэш ответов прокси LiteLLM отключается в каждом запросе (`no-cache`, `no-store`): иначе
+одинаковые запросы уровня (б) получают сохраненный ответ. В итоге запуска `fast_replies`
+(ответ быстрее 2 с) и `repeated_replies` (ответ слово в слово совпал с другим ответом того же
+уровня) должны быть около нуля. `--reuse УРОВЕНЬ=ЗАПУСК` копирует готовые генерации уровня
+из запуска с той же моделью, промптом и настройками; в файлах остается `copied_from`.
+
+Модель указывается обязательно (`--model`); каждой модели — свой `--run`.
+Каждый ответ — отдельный файл `experiments/v1_pilot/generations/<run>/<инстанс>__<уровень>__g<k>.json`.
+Повторный запуск с тем же `--run` продолжает с места обрыва; `--retry-errors`
+перезапрашивает файлы с ошибкой. Настройки (модель, `temperature` 0.7, `max_tokens` 16000,
+версия промпта, коммит) пишутся в `manifest.json`, итог — в `summary.json`
+(`docs/adr/0003-v1-experiment-protocol.md`, п. 7).
+
+### Прогон генераций в каркасе (шаг 5)
+
+```bash
+python experiments/v1_pilot/run_kernel.py --run pilot-haiku
+```
+
+Каждая пара функций из `generations/<run>/` запускается только на своем инстансе: одно
+построение SSGS в отдельном процессе (таймаут 30 с), makespan — из независимого чекера.
+Код `select_job_fn` и `allocate_fn` исполняется в одном модуле, чтобы общие объявления
+(кэш, вспомогательные функции) были видны обеим функциям. На тех же инстансах считаются
+базовые правила `src/priority_rules.py` (LFT, LST, MTS, GP1 из luo2022) и встроенное
+правило каркаса. GP1 реализован по формуле статьи, но ее число не воспроизводит
+(ADR 0003, п. 8).
+Результат — `experiments/v1_pilot/results/<run>/`: `runs.csv`, `baselines.csv`, `summary.json`
+(`docs/adr/0003-v1-experiment-protocol.md`, п. 8).
+
+### Оценка (шаг 6)
+
+```bash
+python experiments/v1_pilot/evaluate.py --run pilot-haiku --price-in 0.10 --price-out 0.50 --spent-usd 0.0991
+```
+
+Доля допустимых генераций и ARPD к BKS и к CPM по уровням (а), (б) и правилам; парные
+сравнения по инстансам (а)–(б), (а)–LST, (б)–LST — тест Уилкоксона с поправкой Холма и
+порог δ = 0,5 п. п.; разбор по RS, OS, RF; стоимость генерации — фактическое списание
+(`--spent-usd`, Spend ключа в LiteLLM за запуск) и оценка по ценам ($ за 1 млн токенов).
+Без кэша прокси списание совпадает с оценкой по ценам ключа; основное число — списание.
+Результат — `experiments/v1_pilot/results/<run>/report.md` и `report.json`
+(`docs/adr/0003-v1-experiment-protocol.md`, п. 9).
 
 ## Версии каркаса и данных
 

@@ -122,6 +122,19 @@ def test_run_skeleton_pipeline_validates_with_checker(tmp_path):
     assert out["status"] == "compile_error"
 
 
+def test_run_skeleton_accepts_dsl_dict():
+    # DSL из инстанса (src/dsl_builder.py) передается словарем, без временного файла
+    dsl = {"project_id": "RCPSP", "optimization_objectives":
+           {"primary": {"metric": "Makespan", "direction": "Minimize"}},
+           "project_indicators": {"values": {"rs": 0.2}}}
+    select = ("def select_job_fn(eligible_ids, jobs, snapshot, meta):\n"
+              "    assert meta.indicators == {'rs': 0.2}\n"
+              "    return min(eligible_ids)\n")
+    allocate = "def allocate_fn(job, feasible_starts, snapshot, meta):\n    return feasible_starts[0]\n"
+    out = rc.run_skeleton(select, allocate, dsl, diamond(), timeout=10)
+    assert out["status"] == "ok" and out["primary"] == 5
+
+
 def test_extract_schedule_accepts_top_level_project_activity_keys():
     assert rc.extract_schedule({"1:1": 0, "2:1": 3}) == {"1:1": 0, "2:1": 3}
     assert rc.extract_schedule({"makespan": 5}) is None

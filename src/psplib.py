@@ -1,10 +1,3 @@
-"""
-Парсер одномодовых инстансов PSPLIB (`.sm`, Kolisch & Sprecher 1997).
-
-Выдает словарь в формате `data/processed` (как `Case1_PSPLIB_j301_1.json`), который
-читают `ProblemFactory`, чекер и `indicators.py`. Многомодовые файлы и инстансы с
-невозобновляемыми ресурсами не поддерживаются: `PSPLIBFormatError`.
-"""
 from __future__ import annotations
 
 import re
@@ -134,3 +127,27 @@ def iter_set(directory: str | Path):
         return parts[1:] if parts else (0, 0)
     for p in sorted(Path(directory).glob("*.sm"), key=key):
         yield p.stem, parse_sm_file(p)
+
+
+def instance_name(set_name: str, param: int, instance: int) -> str:
+    """('j30', 10, 1) -> 'j3010_1'."""
+    return f"{set_name}{param}_{instance}"
+
+
+_SOLUTION_ROW = re.compile(r"^\s*(\d+)\s+(\d+)\s+(\d+)\b")
+
+
+def parse_solution_file(path: str | Path) -> dict[tuple[int, int], int]:
+    """
+    Файл решений PSPLIB (`opt`, `hrs`, `lb`): {(параметр, инстанс): значение}.
+    Берутся строки, которые начинаются с трех целых; заголовки и подписи пропускаются.
+    """
+    out: dict[tuple[int, int], int] = {}
+    for line in Path(path).read_text(encoding="latin-1").splitlines():
+        m = _SOLUTION_ROW.match(line)
+        if m:
+            key = (int(m.group(1)), int(m.group(2)))
+            if key in out:
+                raise PSPLIBFormatError(f"{path}: повтор записи для {key}")
+            out[key] = int(m.group(3))
+    return out
