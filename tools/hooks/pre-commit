@@ -1,0 +1,3 @@
+#!/bin/sh
+# Жесткая проверка перед коммитом (AGENTS.md, «Хуки»)
+exec python "$(git rev-parse --show-toplevel)/tools/hooks/check_staged.py"
