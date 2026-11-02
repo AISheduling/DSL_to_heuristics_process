@@ -10,3 +10,8 @@ data/psplib/*
 !data/psplib/SOURCES.md
 data/rcplib/*
 !data/rcplib/SOURCES.md
+
+experiments/v1_pilot/generations
+
+CLAUDE.local.md
+.claude/hooks/
