@@ -32,7 +32,7 @@ DSL_to_heuristics_process/
 │   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
 │   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
 │   ├── metrics.py                    # RPD / ARPD относительно эталона
-│   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS / GP1 для SSGS
+│   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS / GP1 для SSGS; GRPW — для В2
 │   ├── psgs.py                       # Параллельная схема — только для сверки правил со статьями
 │   ├── stats.py                      # Парный тест Уилкоксона, поправка Холма
 │   ├── dsl_builder.py                # DSL из инстанса: составы индикаторов none / network / resource / all
