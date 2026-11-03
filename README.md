@@ -31,6 +31,7 @@ DSL_to_heuristics_process/
 │   ├── indicators.py                 # 12 стандартных индикаторов проекта (guo2021) + доп. признаки
 │   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
 │   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
+│   ├── reference_solver.py           # Эталон синтетики В2: LB и лучшее из правил (SSGS, PSGS) и сэмплирования
 │   ├── metrics.py                    # RPD / ARPD относительно эталона
 │   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS / GP1 для SSGS; GRPW — для В2
 │   ├── psgs.py                       # Параллельная схема — только для сверки правил со статьями
@@ -63,6 +64,7 @@ DSL_to_heuristics_process/
 │   ├── test_generation.py            # Генерация В1 на подменном клиенте: продолжение, ошибки
 │   ├── test_run_kernel.py            # Правила приоритета, общий модуль функций, прогон В1 в каркасе
 │   ├── test_generators.py            # Фоновые сети В2: структура, RF и RS по заданию, прогон правил
+│   ├── test_reference_solver.py      # Эталон В2: LB, ловушка F1 для LST, сверка с оптимумами J30
 │   ├── test_evaluate.py              # Уилкоксон, Холм, отчет В1 на подготовленных результатах
 │   ├── test_hooks.py                 # Хук перед коммитом: запрещенные файлы и ключи API
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
