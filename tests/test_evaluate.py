@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from stats import holm, paired_wilcoxon
+from stats import holm, paired_wilcoxon, spearman
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "experiments" / "v1_pilot"))
@@ -37,6 +37,14 @@ def test_wilcoxon_all_ties_is_not_significant():
 def test_wilcoxon_rejects_unequal_lengths():
     with pytest.raises(ValueError):
         paired_wilcoxon([1.0], [1.0, 2.0])
+
+
+def test_spearman_monotone_and_constant():
+    up = spearman([0, 0.25, 0.5, 0.75, 1.0], [0.1, 2.0, 3.5, 9.0, 12.0])
+    assert up["rho"] == pytest.approx(1.0) and up["n"] == 5 and up["p_value"] < 0.05
+    assert spearman([0, 1, 2], [3, 3, 3]) == {"n": 3, "rho": None, "p_value": 1.0}
+    with pytest.raises(ValueError):
+        spearman([1, 2], [1])
 
 
 def test_holm():
