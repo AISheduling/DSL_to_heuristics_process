@@ -36,6 +36,7 @@ DSL_to_heuristics_process/
 │   ├── psgs.py                       # Параллельная схема — только для сверки правил со статьями
 │   ├── stats.py                      # Парный тест Уилкоксона, поправка Холма
 │   ├── dsl_builder.py                # DSL из инстанса: составы индикаторов none / network / resource / all
+│   ├── generators/                   # Синтетические проекты В2; background.py — фоновые сети (и контрольная группа)
 │   └── llm_clients/                  # Скрипты генерации эвристик через LLM; prompt_v1.py — промпт В1
 ├── data/
 │   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
@@ -61,6 +62,7 @@ DSL_to_heuristics_process/
 │   ├── test_dsl_builder.py           # DSL из инстанса, DSLMeta.indicators, промпт В1
 │   ├── test_generation.py            # Генерация В1 на подменном клиенте: продолжение, ошибки
 │   ├── test_run_kernel.py            # Правила приоритета, общий модуль функций, прогон В1 в каркасе
+│   ├── test_generators.py            # Фоновые сети В2: структура, RF и RS по заданию, прогон правил
 │   ├── test_evaluate.py              # Уилкоксон, Холм, отчет В1 на подготовленных результатах
 │   ├── test_hooks.py                 # Хук перед коммитом: запрещенные файлы и ключи API
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
