@@ -31,11 +31,15 @@ DSL_to_heuristics_process/
 │   ├── indicators.py                 # 12 стандартных индикаторов проекта (guo2021) + доп. признаки
 │   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
 │   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
+│   ├── rule_features.py              # Метахарактеристики провала правил: пары работ со свойством F1
+│   ├── reference_solver.py           # Эталон синтетики В2: LB и лучшее из правил (SSGS, PSGS) и сэмплирования
 │   ├── metrics.py                    # RPD / ARPD относительно эталона
-│   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS / GP1 для SSGS
+│   ├── priority_rules.py             # Базовые правила приоритета LFT / LST / MTS / GP1 для SSGS; GRPW — для В2
 │   ├── psgs.py                       # Параллельная схема — только для сверки правил со статьями
-│   ├── stats.py                      # Парный тест Уилкоксона, поправка Холма
+│   ├── stats.py                      # Парный тест Уилкоксона, поправка Холма, корреляция Спирмена
 │   ├── dsl_builder.py                # DSL из инстанса: составы индикаторов none / network / resource / all
+│   ├── generators/                   # Синтетические проекты В2; background.py — фоновые сети (и контрольная группа); у модулей В2 рядом .md с примером
+│   │   └── traps/                    # Ловушки для правил; resource_blind_slack.py — F1, ломает LST и MTS, не LFT
 │   └── llm_clients/                  # Скрипты генерации эвристик через LLM; prompt_v1.py — промпт В1
 ├── data/
 │   ├── raw/                          # Исходные файлы (PSPLIB, OR-Library)
@@ -49,6 +53,7 @@ DSL_to_heuristics_process/
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
 │   ├── v1_pilot/                     # Эксперимент В1: выборка, генерация, прогон в каркасе, оценка (evaluate.py)
+│   ├── v2_counterexamples/           # В2: сетка F1 (make_instances.py), прогон правил (run_rules.py), критерии C1–C4 (check_invariants.py), пороги признаков (fit_triggers.py)
 │   └── runners/                      # Прогон эвристик: runner_common.py + три точки входа
 ├── tests/                            # pytest: ядро, чекер, раннеры, пять постановок
 │   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
@@ -61,6 +66,11 @@ DSL_to_heuristics_process/
 │   ├── test_dsl_builder.py           # DSL из инстанса, DSLMeta.indicators, промпт В1
 │   ├── test_generation.py            # Генерация В1 на подменном клиенте: продолжение, ошибки
 │   ├── test_run_kernel.py            # Правила приоритета, общий модуль функций, прогон В1 в каркасе
+│   ├── test_generators.py            # Фоновые сети В2: структура, RF и RS по заданию, прогон правил
+│   ├── test_reference_solver.py      # Эталон В2: LB, ловушка F1 для LST, сверка с оптимумами J30
+│   ├── test_v2_counterexamples.py    # Пайплайн В2: манифест, кэш по хэшу, критерии инварианта
+│   ├── test_rule_features.py         # Признаки F1: ручная ловушка и ее контроли, проекты F1, PSPLIB
+│   ├── test_traps.py                 # Ловушки В2: свойство как неравенства, контроль с одним нарушенным условием, проигрыш LST
 │   ├── test_evaluate.py              # Уилкоксон, Холм, отчет В1 на подготовленных результатах
 │   ├── test_hooks.py                 # Хук перед коммитом: запрещенные файлы и ключи API
 │   └── test_skeleton_cases.py        # Парсер, фабрика, состояние, цель, 5 постановок
