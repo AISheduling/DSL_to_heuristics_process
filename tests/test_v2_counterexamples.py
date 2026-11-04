@@ -97,3 +97,32 @@ def test_report_applies_the_criteria(small_run):
     assert iso["pass"]["c4"] and iso["c1_median_gap"] >= check_invariants.DELTA_LOSS
     md = check_invariants.to_markdown(rep)
     assert "## Критерии по ячейкам" in md and "isolated" in md
+
+
+# Подбор порогов метахарактеристик (fit_triggers.py)
+
+import fit_triggers  # noqa: E402
+
+
+def test_metrics_and_stump_on_separable_data():
+    x = [0.0, 0.1, 0.2, 0.8, 0.9, 1.0]
+    y = [False, False, False, True, True, True]
+    stump = fit_triggers.fit_stump(x, y)
+    assert stump["direction"] == ">" and 0.2 < stump["threshold"] < 0.8
+    assert stump["train_balanced_accuracy"] == 1.0
+    m = fit_triggers.metrics([True, True, False, False], [True, False, True, False])
+    assert (m["precision"], m["recall"], m["specificity"], m["balanced_accuracy"]) == (0.5, 0.5, 0.5, 0.5)
+    # Обратная зависимость — порог с направлением «<»
+    assert fit_triggers.fit_stump(x, [not v for v in y])["direction"] == "<"
+
+
+def test_trigger_report_on_small_run(small_run, small_manifest):
+    # Обучение на n = 30 из маленького прогона; проверочных проектов нет — тесты пустые
+    rep = fit_triggers.build_report(small_run, small_manifest, psplib=None)
+    for rule in ("LST", "MTS"):
+        r = rep["rules"][rule]
+        assert r["trigger"] in fit_triggers.FEATURES and r["best_indicator"].startswith("ind_")
+        assert set(r["features"]) == set(fit_triggers.FEATURES) | {f"ind_{k}" for k in fit_triggers.INDICATORS}
+    trig = fit_triggers.triggers(rep)
+    assert set(trig) == {"LST", "MTS"} and all("explanation_ru" in t for t in trig.values())
+    assert (small_run / "features.csv").exists()

@@ -9,6 +9,7 @@ python experiments/v2_counterexamples/make_instances.py [--seeds 20] [--out inst
 python experiments/v2_counterexamples/run_rules.py --run R [--samples 100] [--workers 8]
 python experiments/v2_counterexamples/run_rules.py --run R --psplib
 python experiments/v2_counterexamples/check_invariants.py --run R
+python experiments/v2_counterexamples/fit_triggers.py --run R [--no-psplib]
 ```
 
 ## `make_instances.py` — сетка проектов
@@ -63,9 +64,25 @@ seed. При s = 1 все блоки — ловушки и вид контрол
 Справочно, без зачёта: проигрыш правил на PSPLIB, доля проектов, где цепочка опоздала сверх
 неизбежного, и качество эталона (доля доказанных оптимумов, разрыв с LB).
 
+## `fit_triggers.py` — пороги метахарактеристик
+
+Пишет `results/R/triggers.md` (отчёт), `results/R/triggers.json` (правило → признак, направление,
+порог, объяснение для маршрутизатора), `results/R/triggers_report.json` (все числа) и кэш
+признаков `results/R/features.csv` по хэшу проекта.
+
+- Признаки — `src/rule_features.py` и 12 индикаторов
+  guo2021 из `instances.csv`.
+- Метка: правило (LST, MTS) проиграло, если его makespan хуже лучшего из остальных правил на
+  5 п. п. и больше.
+- Для каждого признака подбирается порог с направлением (решающий пень), лучший по
+  сбалансированной точности на проектах n = 30 и 60 обоих окружений. Триггер правила —
+  метахарактеристика с лучшей точностью на обучении; проверочные данные в выбор не входят.
+- Проверка: n = 120 отдельно по окружениям и 108 инстансов PSPLIB (если есть `psplib_rules.csv`).
+
 ## Сокращения
 
 - **BKS** — Best Known Solution — лучшее известное решение инстанса из литературы.
+- **BA** — сбалансированная точность: среднее долей верно угаданных проигрышей и не-проигрышей.
 - **CSV** — текстовая таблица с разделителем-запятой.
 - **GP1** — правило приоритета из статьи Luo et al. (2022), найденное генетическим программированием.
 - **GRPW** — Greatest Rank Positional Weight — первой ставится работа с наибольшей суммой своей длительности и длительностей прямых преемников.
