@@ -1,9 +1,3 @@
-"""Проверка файлов перед коммитом: ключи API и файлы, которым не место в git.
-
-Запускается из `tools/hooks/pre-commit` (подключение: `git config core.hooksPath tools/hooks`).
-Без аргументов проверяет индекс git; `--all` — все отслеживаемые файлы.
-Код выхода 1, если что-то найдено: коммит блокируется независимо от агента.
-"""
 from __future__ import annotations
 
 import re
@@ -11,12 +5,13 @@ import subprocess
 import sys
 from fnmatch import fnmatch
 
-# Пути, которые не коммитятся (AGENTS.md, «Что не попадает в git»); исключения — ALLOWED
+# Пути, которые не коммитятся
 FORBIDDEN = (
-    "data/psplib/*", "data/rcplib/*",              # лицензия источников
-    "experiments/v1_pilot/generations/*",          # сырые ответы LLM
+    "data/psplib/*", "data/rcplib/*",              # Лицензия источников
+    "experiments/v1_pilot/generations/*",          # Сырые ответы LLM
+    "experiments/v2_counterexamples/generations/*",
     ".env", "*.env", "*/.env",
-    "CLAUDE.local.md", ".claude/settings.local.json", ".claude/hooks/*",   # личное
+    "CLAUDE.local.md", ".claude/settings.local.json", ".claude/hooks/*",
 )
 ALLOWED = ("data/psplib/SOURCES.md", "data/rcplib/SOURCES.md")
 
@@ -48,7 +43,7 @@ def check(paths: list[str], read) -> list[str]:
             problems.append(f"{path}: файл не должен попадать в git")
             continue
         data = read(path)
-        if b"\0" in data:                          # бинарный (xlsx, pdf) — не проверяем
+        if b"\0" in data:
             continue
         for line in find_secrets(data.decode("utf-8", errors="replace")):
             problems.append(f"{path}:{line}: похоже на ключ API")
@@ -56,7 +51,7 @@ def check(paths: list[str], read) -> list[str]:
 
 
 def main(argv: list[str]) -> int:
-    sys.stderr.reconfigure(encoding="utf-8")       # иначе в консоли Windows кириллица в cp1251
+    sys.stderr.reconfigure(encoding="utf-8")
     if "--all" in argv:
         paths = _git("ls-files", "-z").decode().split("\0")
         read = lambda p: open(p, "rb").read()  # noqa: E731
@@ -67,7 +62,8 @@ def main(argv: list[str]) -> int:
     for p in problems:
         print(p, file=sys.stderr)
     if problems:
-        print("Коммит заблокирован (tools/hooks/check_staged.py). Уберите файлы из индекса: "
+        print("Коммит заблокирован (tools/hooks/check_staged.py). "
+              "Уберите файлы из индекса: "
               "git restore --staged <файл>", file=sys.stderr)
     return 1 if problems else 0
 

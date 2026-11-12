@@ -1,4 +1,3 @@
-"""Хук перед коммитом: запрещенные файлы и ключи API."""
 from __future__ import annotations
 
 import sys
@@ -14,6 +13,7 @@ from check_staged import check, find_secrets, forbidden_path  # noqa: E402
 @pytest.mark.parametrize("path", [
     "data/psplib/instances/j30/j301_1.sm", "data/rcplib/indicators.csv",
     "experiments/v1_pilot/generations/full-haiku-2/manifest.json",
+    "experiments/v2_counterexamples/generations/pilot-haiku/manifest.json",
     ".env", "src/.env", "prod.env", "CLAUDE.local.md", ".claude/settings.local.json",
     ".claude/hooks/ask_before_commit.py",
 ])

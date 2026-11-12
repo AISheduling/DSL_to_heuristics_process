@@ -40,3 +40,15 @@ def holm(p_values: dict[str, float]) -> dict[str, float]:
         running = max(running, min(1.0, (m - i) * p))
         adjusted[key] = running
     return adjusted
+
+
+def spearman(x: list[float], y: list[float]) -> dict:
+    """Ранговая корреляция Спирмена; при постоянном x или y корреляция не определена."""
+    if len(x) != len(y):
+        raise ValueError("x и y разной длины")
+    if len(set(x)) < 2 or len(set(y)) < 2:
+        return {"n": len(x), "rho": None, "p_value": 1.0}
+    from scipy.stats import spearmanr
+
+    res = spearmanr(x, y)
+    return {"n": len(x), "rho": float(res.statistic), "p_value": float(res.pvalue)}

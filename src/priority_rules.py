@@ -101,9 +101,23 @@ def gp1_values(jobs: dict) -> dict[int, float]:
 
 
 def gp1(eligible_ids, jobs, snapshot, meta) -> int:
-    """Первой ставится работа с наименьшим значением GP1 (как у LFT/LST, из которых он собран)."""
+    """Первой ставится работа с наименьшим значением GP1"""
     v = gp1_values(jobs)
     return min(eligible_ids, key=lambda j: (v[j], j))
 
 
+def grpw_values(jobs: dict) -> dict[int, int]:
+    """
+    Ранговый позиционный вес GRPW:
+    длительность работы плюс длительности ее прямых преемников.
+    """
+    return {j: jobs[j].duration + sum(jobs[s].duration for s in jobs[j].successors) for j in jobs}
+
+
+def grpw(eligible_ids, jobs, snapshot, meta) -> int:
+    w = grpw_values(jobs)
+    return min(eligible_ids, key=lambda j: (-w[j], j))
+
+
 RULES: dict[str, Callable] = {"LFT": lft, "LST": lst, "MTS": mts, "GP1": gp1}
+RULES_V2: dict[str, Callable] = {**RULES, "GRPW": grpw}
