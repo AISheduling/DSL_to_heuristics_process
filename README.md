@@ -31,6 +31,8 @@ DSL_to_heuristics_process/
 │   ├── indicators.py                 # 12 стандартных индикаторов проекта (guo2021) + доп. признаки
 │   ├── psplib.py                     # Парсер PSPLIB .sm -> формат data/processed, файлы решений
 │   ├── references.py                 # Эталоны PSPLIB: BKS, нижние границы, CPM (PSPLIB + RCPLIB)
+│   ├── rcplib.py                     # Наборы RCPLIB v2.4: парсер .rcp (Паттерсон), перечень наборов, эталоны из Excel
+│   ├── dslib.py                      # Реальные проекты DSLIB -> .rcp (только связи FS без лага), манифест исключений
 │   ├── rule_features.py              # Метахарактеристики провала правил: пары работ со свойством F1
 │   ├── router.py                     # Маршрутизатор В2-LLM: порог F1 -> DSL уровня b / v (вердикт) / g (свойство), ADR 0004
 │   ├── reference_solver.py           # Эталон синтетики В2: LB и лучшее из правил (SSGS, PSGS) и сэмплирования
@@ -49,12 +51,12 @@ DSL_to_heuristics_process/
 │   ├── rcplib/                       # RCPLIB: индикаторы и эталоны (не в git, см. SOURCES.md)
 │   └── references/                   # DSL и текстовые описания кейсов
 ├── docs/
-│   ├── adr/                          # Архитектурные решения (0001 — статусы, чекер, allocate_fn; 0002 — индикаторы; 0003 — протокол В1; 0004 — протокол В2-LLM, маршрутизатор по F1)
+│   ├── adr/                          # Архитектурные решения (0001 — статусы, чекер, allocate_fn; 0002 — индикаторы; 0003 — протокол В1; 0004 — протокол В2-LLM, маршрутизатор по F1; 0005 — перенос F1 на RCPLIB)
 │   ├── literature-review/            # Обзор литературы (этап 0)
 │   └── technical_report.pdf          # Технический отчет проекта
 ├── experiments/                      # Результаты генерации эвристик LLM
 │   ├── v1_pilot/                     # Эксперимент В1: выборка, генерация, прогон в каркасе, оценка (evaluate.py)
-│   ├── v2_counterexamples/           # В2: сетка F1 (make_instances.py), прогон правил (run_rules.py), критерии C1–C4 (check_invariants.py), пороги признаков (fit_triggers.py); В2-LLM: генерация (llm_generate.py) и прогон в каркасе (llm_run_kernel.py), оценка (llm_evaluate.py)
+│   ├── v2_counterexamples/           # В2: сетка F1 (make_instances.py), прогон правил (run_rules.py), критерии C1–C4 (check_invariants.py), пороги признаков (fit_triggers.py); В2-LLM: генерация (llm_generate.py) и прогон в каркасе (llm_run_kernel.py), оценка (llm_evaluate.py); перенос триггера на RCPLIB (run_benchmarks.py, ADR 0005)
 │   └── runners/                      # Прогон эвристик: runner_common.py + три точки входа
 ├── tests/                            # pytest: ядро, чекер, раннеры, пять постановок
 │   ├── test_kernel.py                # Негативные тесты дефектов ядра и контракта функций
@@ -63,6 +65,8 @@ DSL_to_heuristics_process/
 │   ├── test_psplib.py                # Парсер .sm: j301_1 = Case 1, отказ на чужих форматах
 │   ├── test_indicators.py            # Индикаторы: ручные примеры, инварианты, guo2021, RCPLIB
 │   ├── test_references.py            # Эталоны: файлы решений, CPM = MPM-Time, BKS из двух источников
+│   ├── test_rcplib.py                # RCPLIB: разбор .rcp, отказ на битых файлах, размеры наборов, эталоны = Excel
+│   ├── test_dslib.py                 # DSLIB: длительности/спрос, листья WBS и сводки, исключения, запись .rcp, 53 проекта проходят чекер
 │   ├── test_metrics.py               # RPD / ARPD, детерминированность выборки В1
 │   ├── test_dsl_builder.py           # DSL из инстанса, DSLMeta.indicators, промпт В1
 │   ├── test_generation.py            # Генерация В1 на подменном клиенте: продолжение, ошибки
@@ -70,6 +74,7 @@ DSL_to_heuristics_process/
 │   ├── test_generators.py            # Фоновые сети В2: структура, RF и RS по заданию, прогон правил
 │   ├── test_reference_solver.py      # Эталон В2: LB, ловушка F1 для LST, сверка с оптимумами J30
 │   ├── test_v2_counterexamples.py    # Пайплайн В2: манифест, кэш по хэшу, критерии инварианта
+│   ├── test_run_benchmarks.py        # Перенос F1 на RCPLIB: строки правил, порог, метка, отчет, выходные файлы
 │   ├── test_rule_features.py         # Признаки F1: ручная ловушка и ее контроли, проекты F1, PSPLIB
 │   ├── test_router.py                # Маршрутизатор В2-LLM: срабатывание, блоки DSL, нет утечек генератора
 │   ├── test_llm_generate.py          # Генерация В2-LLM на подменном клиенте: план вызовов, копии b
