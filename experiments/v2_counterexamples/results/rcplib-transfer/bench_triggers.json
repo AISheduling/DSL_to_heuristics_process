@@ -1,0 +1,324 @@
+{
+ "sets": {
+  "RG30": {
+   "LST": {
+    "n": 1800,
+    "positives": 325,
+    "fired": 70,
+    "precision": 0.4142857142857143,
+    "recall": 0.08923076923076922,
+    "specificity": 0.9722033898305085,
+    "balanced_accuracy": 0.5307170795306388,
+    "spearman": {
+     "n": 1800,
+     "rho": 0.12386606009944495,
+     "p_value": 1.35051983923236e-07
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 1800,
+    "positives": 671,
+    "fired": 70,
+    "precision": 0.5714285714285714,
+    "recall": 0.05961251862891207,
+    "specificity": 0.9734278122232064,
+    "balanced_accuracy": 0.5165201654260593,
+    "spearman": {
+     "n": 1800,
+     "rho": 0.07771483462097455,
+     "p_value": 0.000967322920890846
+    },
+    "no_resources": 0
+   }
+  },
+  "VNR": {
+   "LST": {
+    "n": 1750,
+    "positives": 188,
+    "fired": 71,
+    "precision": 0.2112676056338028,
+    "recall": 0.0797872340425532,
+    "specificity": 0.9641485275288092,
+    "balanced_accuracy": 0.5219678807856812,
+    "spearman": {
+     "n": 1750,
+     "rho": 0.06405833939687736,
+     "p_value": 0.007349223087940549
+    },
+    "no_resources": 10
+   },
+   "MTS": {
+    "n": 1750,
+    "positives": 332,
+    "fired": 71,
+    "precision": 0.3380281690140845,
+    "recall": 0.07228915662650602,
+    "specificity": 0.9668547249647391,
+    "balanced_accuracy": 0.5195719407956225,
+    "spearman": {
+     "n": 1750,
+     "rho": 0.07029722303451826,
+     "p_value": 0.0032580203722276735
+    },
+    "no_resources": 10
+   }
+  },
+  "sD": {
+   "LST": {
+    "n": 390,
+    "positives": 122,
+    "fired": 44,
+    "precision": 0.29545454545454547,
+    "recall": 0.10655737704918032,
+    "specificity": 0.8843283582089553,
+    "balanced_accuracy": 0.4954428676290678,
+    "spearman": {
+     "n": 390,
+     "rho": -0.05244638211973731,
+     "p_value": 0.30154790935545933
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 390,
+    "positives": 263,
+    "fired": 44,
+    "precision": 0.6136363636363636,
+    "recall": 0.10266159695817491,
+    "specificity": 0.8661417322834646,
+    "balanced_accuracy": 0.48440166462081974,
+    "spearman": {
+     "n": 390,
+     "rho": -0.0015123892207525107,
+     "p_value": 0.9762493354459578
+    },
+    "no_resources": 0
+   }
+  },
+  "CV": {
+   "LST": {
+    "n": 623,
+    "positives": 224,
+    "fired": 51,
+    "precision": 0.45098039215686275,
+    "recall": 0.10267857142857142,
+    "specificity": 0.9298245614035088,
+    "balanced_accuracy": 0.5162515664160401,
+    "spearman": {
+     "n": 623,
+     "rho": 0.07678293096206566,
+     "p_value": 0.05543142943941475
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 623,
+    "positives": 379,
+    "fired": 51,
+    "precision": 0.5294117647058824,
+    "recall": 0.0712401055408971,
+    "specificity": 0.9016393442622951,
+    "balanced_accuracy": 0.4864397249015961,
+    "spearman": {
+     "n": 623,
+     "rho": 0.02140831560541632,
+     "p_value": 0.5937990228770387
+    },
+    "no_resources": 0
+   }
+  },
+  "DC1": {
+   "LST": {
+    "n": 1800,
+    "positives": 339,
+    "fired": 182,
+    "precision": 0.34065934065934067,
+    "recall": 0.18289085545722714,
+    "specificity": 0.917864476386037,
+    "balanced_accuracy": 0.5503776659216321,
+    "spearman": {
+     "n": 1800,
+     "rho": 0.17945799036717533,
+     "p_value": 1.7089762400450678e-14
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 1800,
+    "positives": 461,
+    "fired": 182,
+    "precision": 0.3241758241758242,
+    "recall": 0.1279826464208243,
+    "specificity": 0.9081404032860344,
+    "balanced_accuracy": 0.5180615248534294,
+    "spearman": {
+     "n": 1800,
+     "rho": 0.08882573299783081,
+     "p_value": 0.00016103818060883758
+    },
+    "no_resources": 0
+   }
+  },
+  "DC2": {
+   "LST": {
+    "n": 720,
+    "positives": 101,
+    "fired": 29,
+    "precision": 0.20689655172413793,
+    "recall": 0.0594059405940594,
+    "specificity": 0.962843295638126,
+    "balanced_accuracy": 0.5111246181160927,
+    "spearman": {
+     "n": 720,
+     "rho": 0.09037305312603154,
+     "p_value": 0.015278245611226895
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 720,
+    "positives": 206,
+    "fired": 29,
+    "precision": 0.3793103448275862,
+    "recall": 0.05339805825242718,
+    "specificity": 0.9649805447470817,
+    "balanced_accuracy": 0.5091893014997545,
+    "spearman": {
+     "n": 720,
+     "rho": 0.005984185085288953,
+     "p_value": 0.8726487161061869
+    },
+    "no_resources": 0
+   }
+  },
+  "RG300": {
+   "LST": {
+    "n": 480,
+    "positives": 18,
+    "fired": 18,
+    "precision": 0.05555555555555555,
+    "recall": 0.05555555555555555,
+    "specificity": 0.9632034632034632,
+    "balanced_accuracy": 0.5093795093795094,
+    "spearman": {
+     "n": 480,
+     "rho": 0.16351071262991773,
+     "p_value": 0.0003216139545382647
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 480,
+    "positives": 25,
+    "fired": 18,
+    "precision": 0.05555555555555555,
+    "recall": 0.04,
+    "specificity": 0.9626373626373627,
+    "balanced_accuracy": 0.5013186813186813,
+    "spearman": {
+     "n": 480,
+     "rho": -0.052216254473626,
+     "p_value": 0.253538361298889
+    },
+    "no_resources": 0
+   }
+  },
+  "LPP": {
+   "LST": {
+    "n": 80,
+    "positives": 1,
+    "fired": 0,
+    "precision": null,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "balanced_accuracy": 0.5,
+    "spearman": {
+     "n": 80,
+     "rho": null,
+     "p_value": 1.0
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 80,
+    "positives": 1,
+    "fired": 0,
+    "precision": null,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "balanced_accuracy": 0.5,
+    "spearman": {
+     "n": 80,
+     "rho": null,
+     "p_value": 1.0
+    },
+    "no_resources": 0
+   }
+  },
+  "LPSP": {
+   "LST": {
+    "n": 81,
+    "positives": 0,
+    "fired": 0,
+    "precision": null,
+    "recall": null,
+    "specificity": 1.0,
+    "balanced_accuracy": 1.0,
+    "spearman": {
+     "n": 81,
+     "rho": 0.3820475799411931,
+     "p_value": 0.0004323716337896446
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 81,
+    "positives": 1,
+    "fired": 0,
+    "precision": null,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "balanced_accuracy": 0.5,
+    "spearman": {
+     "n": 81,
+     "rho": -0.002530516722477271,
+     "p_value": 0.9821123694143478
+    },
+    "no_resources": 0
+   }
+  },
+  "ALL": {
+   "LST": {
+    "n": 7724,
+    "positives": 1318,
+    "fired": 465,
+    "precision": 0.3204301075268817,
+    "recall": 0.11305007587253414,
+    "specificity": 0.9506712457071496,
+    "balanced_accuracy": 0.5318606607898418,
+    "spearman": {
+     "n": 7724,
+     "rho": 0.09846343356203606,
+     "p_value": 4.19894841421906e-18
+    },
+    "no_resources": 10
+   },
+   "MTS": {
+    "n": 7724,
+    "positives": 2339,
+    "fired": 465,
+    "precision": 0.4064516129032258,
+    "recall": 0.0808037622915776,
+    "specificity": 0.9487465181058495,
+    "balanced_accuracy": 0.5147751401987135,
+    "spearman": {
+     "n": 7724,
+     "rho": 0.05078398446435097,
+     "p_value": 7.992866209636561e-06
+    },
+    "no_resources": 10
+   }
+  }
+ }
+}

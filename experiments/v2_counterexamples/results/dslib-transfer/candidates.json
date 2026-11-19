@@ -1,0 +1,6 @@
+{
+ "created": "2026-11-18T17:23:06+00:00",
+ "triggers_file": "experiments/v2_counterexamples/results/f1-grid/triggers.json",
+ "threshold": 0.05639177443290227,
+ "instances": []
+}

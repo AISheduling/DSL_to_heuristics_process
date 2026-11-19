@@ -79,6 +79,30 @@ seed. При s = 1 все блоки — ловушки и вид контрол
   метахарактеристика с лучшей точностью на обучении; проверочные данные в выбор не входят.
 - Проверка: n = 120 отдельно по окружениям и 108 инстансов PSPLIB (если есть `psplib_rules.csv`).
 
+## `run_benchmarks.py` — перенос триггера на RCPLIB (ADR 0005)
+
+```
+python experiments/v2_counterexamples/run_benchmarks.py --run rcplib-transfer [--sets sD CV] [--workers 8]
+```
+
+Проверка триггера на эталонных наборах RCPLIB v2.4 (`src/rcplib.py`, данные —
+`data/rcplib/SOURCES.md`) без подбора порога: порог и направление берутся из
+`results/f1-grid/triggers.json`, метка та же, что в `fit_triggers.py` (проигрыш ≥ 5 п. п.
+лучшему из остальных правил). LLM не вызывается.
+
+Набор `DSLIB` (`--sets DSLIB`) — реальные проекты, сконвертированные `src/dslib.py` в
+`data/dslib/instances/`; эталонов у него нет, BKS и RPD пустые. По умолчанию прогоняются
+только наборы RCPLIB.
+
+Пишет в `results/R/`:
+- `bench_instances.csv` — по инстансу: признаки F1, сработал ли триггер LST/MTS, проигрыш
+  и метка, лучший makespan правил, CPM, BKS (UB-lit Excel), оптимальность;
+- `bench_rules.csv` — makespan каждого правила (чекер), RPD к BKS, проигрыш;
+- `bench_triggers.md` / `.json` — по наборам и всего: сработал, проиграл, precision,
+  recall, specificity, BA, ρ Спирмена признака с проигрышем;
+- `candidates.json` — инстансы, где сработал триггер LST (кандидаты для LLM);
+- `summary.json` — число инстансов и срабатываний по наборам, время.
+
 ## В2-LLM: маршрутизатор и генерация (ADR 0004)
 
 ```
