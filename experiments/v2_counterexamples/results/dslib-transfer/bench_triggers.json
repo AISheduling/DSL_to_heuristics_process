@@ -1,0 +1,68 @@
+{
+ "sets": {
+  "DSLIB": {
+   "LST": {
+    "n": 53,
+    "positives": 4,
+    "fired": 0,
+    "precision": null,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "balanced_accuracy": 0.5,
+    "spearman": {
+     "n": 53,
+     "rho": -0.27377721600964317,
+     "p_value": 0.04729141474869514
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 53,
+    "positives": 7,
+    "fired": 0,
+    "precision": null,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "balanced_accuracy": 0.5,
+    "spearman": {
+     "n": 53,
+     "rho": 0.15623613556053972,
+     "p_value": 0.26392099718729944
+    },
+    "no_resources": 0
+   }
+  },
+  "ALL": {
+   "LST": {
+    "n": 53,
+    "positives": 4,
+    "fired": 0,
+    "precision": null,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "balanced_accuracy": 0.5,
+    "spearman": {
+     "n": 53,
+     "rho": -0.27377721600964317,
+     "p_value": 0.04729141474869514
+    },
+    "no_resources": 0
+   },
+   "MTS": {
+    "n": 53,
+    "positives": 7,
+    "fired": 0,
+    "precision": null,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "balanced_accuracy": 0.5,
+    "spearman": {
+     "n": 53,
+     "rho": 0.15623613556053972,
+     "p_value": 0.26392099718729944
+    },
+    "no_resources": 0
+   }
+  }
+ }
+}
