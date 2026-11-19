@@ -10,6 +10,8 @@ data/psplib/*
 !data/psplib/SOURCES.md
 data/rcplib/*
 !data/rcplib/SOURCES.md
+data/dslib/*
+!data/dslib/SOURCES.md
 
 experiments/v1_pilot/generations
 experiments/v2_counterexamples/generations
